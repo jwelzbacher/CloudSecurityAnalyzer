@@ -1,0 +1,9 @@
+provider: "gcp"
+frameworks:
+  - "cis_gcp_1_3"
+  - "nist_csf"
+regions: []  # GCP doesn't use regions in the same way
+artifacts_dir: "./artifacts"
+scanners:
+  prowler: true
+redact_ids: true

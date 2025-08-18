@@ -1,0 +1,93 @@
+map_id: "cis_aws_1_4"
+name: "CIS Amazon Web Services Foundations Benchmark v1.4"
+version: "1.4.0"
+description: "Center for Internet Security AWS Foundations Benchmark"
+framework_type: "cis"
+provider: "aws"
+
+rules:
+  - source: "prowler:aws_iam_avoid_root_usage"
+    target: "CIS-1.3"
+    title: "Ensure the root account is not used"
+    description: "The root account has unrestricted access to all resources in the AWS account"
+    severity: "high"
+
+  - source: "prowler:aws_iam_root_mfa_enabled"
+    target: "CIS-1.1"
+    title: "Ensure MFA is enabled for the root account"
+    description: "Multi-factor authentication should be enabled for the root account"
+    severity: "high"
+
+  - source: "prowler:aws_iam_password_policy_minimum_length"
+    target: "CIS-1.8"
+    title: "Ensure IAM password policy requires minimum length of 14 or greater"
+    description: "Password policies should enforce minimum length requirements"
+    severity: "medium"
+
+  - source: "prowler:aws_iam_password_policy_reuse_prevention"
+    target: "CIS-1.9"
+    title: "Ensure IAM password policy prevents password reuse"
+    description: "Password policies should prevent password reuse"
+    severity: "medium"
+
+  - source: "prowler:aws_s3_bucket_public_read_prohibited"
+    target: "CIS-2.1.1"
+    title: "Ensure S3 bucket access logging is configured"
+    description: "S3 buckets should have access logging enabled"
+    severity: "medium"
+
+  - source: "prowler:aws_s3_bucket_public_write_prohibited"
+    target: "CIS-2.1.2"
+    title: "Ensure S3 bucket public write access is prohibited"
+    description: "S3 buckets should not allow public write access"
+    severity: "high"
+
+  - source: "prowler:aws_s3_bucket_public_access_blocked"
+    target: "CIS-2.1.3"
+    title: "Ensure S3 bucket public access is blocked"
+    description: "S3 buckets should block all public access"
+    severity: "medium"
+
+  - source: "prowler:aws_cloudtrail_enabled"
+    target: "CIS-3.1"
+    title: "Ensure CloudTrail is enabled in all regions"
+    description: "CloudTrail should be enabled in all AWS regions"
+    severity: "high"
+
+  - source: "prowler:aws_cloudtrail_log_file_validation_enabled"
+    target: "CIS-3.2"
+    title: "Ensure CloudTrail log file validation is enabled"
+    description: "CloudTrail logs should have file validation enabled"
+    severity: "medium"
+
+  - source: "prowler:aws_config_enabled"
+    target: "CIS-3.5"
+    title: "Ensure AWS Config is enabled"
+    description: "AWS Config should be enabled to monitor configuration changes"
+    severity: "medium"
+
+  - source: "prowler:aws_vpc_flow_logs_enabled"
+    target: "CIS-3.7"
+    title: "Ensure VPC flow logging is enabled in all VPCs"
+    description: "VPC Flow Logs should be enabled for network monitoring"
+    severity: "medium"
+
+categories:
+  - id: "identity_access_management"
+    name: "Identity and Access Management"
+    controls: ["CIS-1.3", "CIS-1.4", "CIS-1.8", "CIS-1.9"]
+
+  - id: "storage"
+    name: "Storage"
+    controls: ["CIS-2.1.1", "CIS-2.1.2"]
+
+  - id: "logging"
+    name: "Logging"
+    controls: ["CIS-3.1", "CIS-3.2", "CIS-3.5", "CIS-3.7"]
+
+metadata:
+  created_date: "2024-01-15"
+  updated_date: "2024-01-15"
+  author: "CS Kit"
+  source_url: "https://www.cisecurity.org/benchmark/amazon_web_services"
+  tags: ["cis", "aws", "security", "compliance"]

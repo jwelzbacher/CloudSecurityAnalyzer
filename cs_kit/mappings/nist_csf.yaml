@@ -1,0 +1,59 @@
+map_id: "nist_csf"
+name: "NIST Cybersecurity Framework"
+version: "1.1"
+description: "National Institute of Standards and Technology Cybersecurity Framework"
+framework_type: "nist"
+provider: null  # Multi-provider framework
+
+rules:
+  - source: "prowler:aws_iam_avoid_root_usage"
+    target: "PR.AC-1"
+    title: "Identities and credentials are issued, managed, verified, revoked, and audited"
+    description: "Root account usage should be avoided and monitored"
+    severity: "high"
+
+  - source: "prowler:aws_iam_mfa_enabled_for_root"
+    target: "PR.AC-7"
+    title: "Users, devices, and other assets are authenticated"
+    description: "Multi-factor authentication strengthens authentication"
+    severity: "high"
+
+  - source: "prowler:aws_cloudtrail_enabled"
+    target: "DE.AE-3"
+    title: "Event data are collected and correlated from multiple sources"
+    description: "CloudTrail provides comprehensive audit logging"
+    severity: "medium"
+
+  - source: "prowler:aws_config_enabled"
+    target: "DE.CM-7"
+    title: "Monitoring for unauthorized personnel, connections, devices, and software"
+    description: "AWS Config monitors configuration changes"
+    severity: "medium"
+
+categories:
+  - id: "identify"
+    name: "Identify (ID)"
+    controls: []
+
+  - id: "protect"
+    name: "Protect (PR)"
+    controls: ["PR.AC-1", "PR.AC-7"]
+
+  - id: "detect"
+    name: "Detect (DE)"
+    controls: ["DE.AE-3", "DE.CM-7"]
+
+  - id: "respond"
+    name: "Respond (RS)"
+    controls: []
+
+  - id: "recover"
+    name: "Recover (RC)"
+    controls: []
+
+metadata:
+  created_date: "2024-01-15"
+  updated_date: "2024-01-15"
+  author: "CS Kit"
+  source_url: "https://www.nist.gov/cyberframework"
+  tags: ["nist", "framework", "cybersecurity", "multi-cloud"]

@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  # Production service
+  cs-kit:
+    build:
+      context: .
+      target: production
+    image: cs-kit:latest
+    container_name: cs-kit-prod
+    volumes:
+      # Mount directories for persistent storage
+      - ./artifacts:/app/artifacts
+      - ./reports:/app/reports
+      # Mount sample data for testing
+      - ./samples:/app/samples:ro
+    environment:
+      # Environment variables for cloud provider credentials
+      # AWS
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN:-}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-east-1}
+      # GCP
+      - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS:-}
+      - GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT:-}
+      # Azure
+      - AZURE_SUBSCRIPTION_ID=${AZURE_SUBSCRIPTION_ID:-}
+      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID:-}
+      - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET:-}
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID:-}
+    networks:
+      - cs-kit-network
+    # Override default command for specific use cases
+    # command: ["run", "--provider", "aws", "--frameworks", "cis_aws_1_4"]
+
+  # Development service
+  cs-kit-dev:
+    build:
+      context: .
+      target: development
+    image: cs-kit:dev
+    container_name: cs-kit-dev
+    volumes:
+      # Mount source code for live development
+      - .:/app
+      # Mount directories for persistent storage
+      - ./artifacts:/app/artifacts
+      - ./reports:/app/reports
+    environment:
+      # Development environment variables
+      - PYTHONPATH=/app
+      # Cloud provider credentials (same as production)
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN:-}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-east-1}
+      - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS:-}
+      - GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT:-}
+      - AZURE_SUBSCRIPTION_ID=${AZURE_SUBSCRIPTION_ID:-}
+      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID:-}
+      - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET:-}
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID:-}
+    networks:
+      - cs-kit-network
+    stdin_open: true
+    tty: true
+
+  # Prowler service (optional) - for environments where Prowler should be containerized
+  prowler:
+    image: prowler/prowler:latest
+    container_name: cs-kit-prowler
+    volumes:
+      - ./artifacts:/artifacts
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN:-}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-east-1}
+    networks:
+      - cs-kit-network
+    # This service is not started by default
+    profiles:
+      - prowler
+
+networks:
+  cs-kit-network:
+    driver: bridge
+
+volumes:
+  # Named volumes for persistent data
+  cs-kit-artifacts:
+  cs-kit-reports:

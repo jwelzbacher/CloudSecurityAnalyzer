@@ -1,0 +1,50 @@
+map_id: "soc2_type2"
+name: "SOC 2 Type II Controls"
+version: "1.0.0"
+description: "Mapping of security findings to SOC 2 Type II trust service criteria."
+framework_type: "soc2"
+provider: "aws"
+rules:
+  - source: "prowler:aws_iam_avoid_root_usage"
+    target: "CC6.1"
+    title: "Logical and physical access controls"
+    description: "Logical and physical access controls restrict access to information and system resources."
+    severity: "critical"
+  - source: "prowler:aws_iam_root_mfa_enabled"
+    target: "CC6.1"
+    title: "Logical and physical access controls"
+    description: "Logical and physical access controls restrict access to information and system resources."
+    severity: "critical"
+  - source: "prowler:aws_s3_bucket_public_access_blocked"
+    target: "CC6.7"
+    title: "Data protection during transmission and storage"
+    description: "Data is protected from unauthorized access during transmission and storage."
+    severity: "high"
+  - source: "prowler:aws_cloudtrail_enabled"
+    target: "CC7.2"
+    title: "System monitoring for security breaches"
+    description: "System activities are monitored to detect potential security breaches."
+    severity: "medium"
+  - source: "prowler:aws_config_enabled"
+    target: "CC7.2"
+    title: "System monitoring for security breaches"
+    description: "System activities are monitored to detect potential security breaches."
+    severity: "medium"
+
+categories:
+  - id: "access_controls"
+    name: "Access Controls"
+    controls: ["CC6.1"]
+  - id: "data_protection"
+    name: "Data Protection"
+    controls: ["CC6.7"]
+  - id: "monitoring"
+    name: "System Monitoring"
+    controls: ["CC7.2"]
+
+metadata:
+  created_date: "2024-01-15"
+  updated_date: "2024-01-15"
+  author: "CS Kit"
+  source_url: "https://www.aicpa.org/interestareas/frc/assuranceadvisoryservices/aicpasoc2report.html"
+  tags: ["soc2", "aws", "security", "compliance"]

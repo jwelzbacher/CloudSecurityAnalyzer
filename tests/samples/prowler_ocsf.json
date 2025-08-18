@@ -1,0 +1,84 @@
+[
+  {
+    "time": "2024-01-15T10:30:00.000Z",
+    "product": {
+      "name": "Prowler",
+      "version": "3.5.0"
+    },
+    "class_uid": 2001,
+    "class_name": "Security Finding",
+    "severity": "high",
+    "status": "fail",
+    "resource": {
+      "uid": "arn:aws:iam::123456789012:root",
+      "type": "IAM User",
+      "region": "us-east-1"
+    },
+    "cloud": {
+      "provider": "aws",
+      "account": {
+        "uid": "123456789012"
+      },
+      "region": "us-east-1"
+    },
+    "finding": {
+      "uid": "prowler-aws-iam-avoid-root-usage",
+      "title": "Avoid the use of the root account",
+      "desc": "The root account has unrestricted access to all resources in the AWS account. It is highly recommended that the use of this account be avoided.",
+      "remediation": {
+        "desc": "Follow the remediation instructions in the CIS benchmark to create IAM users for daily activities."
+      },
+      "compliance": {
+        "requirements": ["CIS-1.3"]
+      }
+    },
+    "metadata": {
+      "product": {
+        "name": "Prowler",
+        "version": "3.5.0"
+      },
+      "version": "1.0.0"
+    }
+  },
+  {
+    "time": "2024-01-15T10:30:01.000Z",
+    "product": {
+      "name": "Prowler",
+      "version": "3.5.0"
+    },
+    "class_uid": 2001,
+    "class_name": "Security Finding",
+    "severity": "medium",
+    "status": "pass",
+    "resource": {
+      "uid": "arn:aws:s3:::example-bucket",
+      "type": "S3 Bucket",
+      "region": "us-east-1"
+    },
+    "cloud": {
+      "provider": "aws",
+      "account": {
+        "uid": "123456789012"
+      },
+      "region": "us-east-1"
+    },
+    "finding": {
+      "uid": "prowler-aws-s3-bucket-public-read-prohibited",
+      "title": "S3 bucket should not allow public read access",
+      "desc": "S3 buckets should not allow public read access to prevent unauthorized data exposure.",
+      "remediation": {
+        "desc": "Configure bucket policies and ACLs to restrict public access."
+      },
+      "compliance": {
+        "requirements": ["CIS-2.1.1"]
+      }
+    },
+    "metadata": {
+      "product": {
+        "name": "Prowler",
+        "version": "3.5.0"
+      },
+      "version": "1.0.0"
+    }
+  }
+]

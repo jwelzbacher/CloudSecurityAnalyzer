@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}{{ report_title | default("Security Assessment Report") }}{% endblock %}
+
+{% block content %}
+<div class="text-center" style="margin-top: 100px;">
+    {% if logo_path %}
+    <img src="{{ logo_path }}" alt="Company Logo" class="logo">
+    {% endif %}
+    
+    <h1 style="font-size: 36px; margin-bottom: 30px; border: none;">
+        {{ report_title | default("Security Assessment Report") }}
+    </h1>
+    
+    <div style="font-size: 18px; color: #7f8c8d; margin-bottom: 40px;">
+        <p><strong>Company:</strong> {{ company_name | default("Security Assessment") }}</p>
+        <p><strong>Assessment Date:</strong> {{ assessment_date | default(current_date) }}</p>
+        {% if scan_period %}
+        <p><strong>Scan Period:</strong> {{ scan_period }}</p>
+        {% endif %}
+    </div>
+
+    <div class="metrics-grid" style="margin-top: 60px;">
+        <div class="metric-card">
+            <span class="metric-value">{{ summary.total_findings | default(0) }}</span>
+            <div class="metric-label">Total Findings</div>
+        </div>
+        
+        <div class="metric-card">
+            <span class="metric-value">{{ summary.unique_resources | default(0) }}</span>
+            <div class="metric-label">Resources Scanned</div>
+        </div>
+        
+        <div class="metric-card">
+            <span class="metric-value">{{ summary.unique_accounts | default(0) }}</span>
+            <div class="metric-label">Accounts Assessed</div>
+        </div>
+        
+        <div class="metric-card">
+            <span class="metric-value">{{ summary.frameworks_covered | length | default(0) }}</span>
+            <div class="metric-label">Compliance Frameworks</div>
+        </div>
+    </div>
+
+    {% if summary.by_severity %}
+    <div style="margin-top: 60px;">
+        <h2>Risk Distribution</h2>
+        <table style="margin: 20px auto; width: 60%;">
+            <thead>
+                <tr>
+                    <th>Severity Level</th>
+                    <th>Count</th>
+                    <th>Percentage</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for severity, count in summary.by_severity.items() %}
+                <tr>
+                    <td class="severity-{{ severity }}">{{ severity.title() }}</td>
+                    <td class="text-center">{{ count }}</td>
+                    <td class="text-center">{{ "%.1f" | format((count / summary.total_findings * 100) if summary.total_findings > 0 else 0) }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <div style="margin-top: 80px; font-size: 14px; color: #7f8c8d;">
+        <p><em>This report contains confidential and proprietary information.</em></p>
+        <p><em>Distribution is restricted to authorized personnel only.</em></p>
+    </div>
+</div>
+
+<div class="page-break"></div>
+{% endblock %}

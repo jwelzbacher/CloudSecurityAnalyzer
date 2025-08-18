@@ -1,0 +1,11 @@
+provider: "aws"
+frameworks:
+  - "cis_aws_1_4"
+  - "nist_csf"
+regions:
+  - "us-east-1"
+  - "us-west-2"
+artifacts_dir: "./artifacts"
+scanners:
+  prowler: true
+redact_ids: true

@@ -1,0 +1,218 @@
+[
+  {
+    "metadata": {
+      "event_code": "prowler",
+      "product": {
+        "name": "Prowler",
+        "version": "3.5.0",
+        "vendor_name": "Prowler"
+      },
+      "profiles": ["cloud"],
+      "version": "1.0.0"
+    },
+    "severity_id": 3,
+    "severity": "Medium",
+    "class_name": "Security Finding",
+    "class_uid": 2001,
+    "category_name": "Findings",
+    "category_uid": 2,
+    "confidence": "High",
+    "confidence_id": 3,
+    "finding": {
+      "title": "IAM root user should not have access keys",
+      "desc": "The root user is the most privileged user in an AWS account. AWS Access Keys provide programmatic access to a given AWS account. It is recommended that all access keys associated with the root user be removed.",
+      "uid": "aws_iam_avoid_root_usage",
+      "types": ["Sensitive Data Identifiable"]
+    },
+    "resources": [
+      {
+        "name": "root",
+        "type": "AwsIamUser",
+        "uid": "arn:aws:iam::123456789012:root",
+        "account_uid": "123456789012",
+        "region": "us-east-1",
+        "data": {
+          "details": "Root user has active access keys"
+        }
+      }
+    ],
+    "state": "New",
+    "state_id": 1,
+    "activity_name": "Create",
+    "activity_id": 1,
+    "type_name": "Security Finding: Create",
+    "type_uid": 200101,
+    "time": "2024-01-15T10:30:00.000Z",
+    "start_time": "2024-01-15T10:30:00.000Z",
+    "end_time": "2024-01-15T10:30:00.000Z",
+    "duration": 0,
+    "status": "Failure",
+    "status_code": "FAIL",
+    "status_detail": "Root user access keys detected",
+    "status_id": 2,
+    "cloud": {
+      "account": {
+        "name": "production-account",
+        "type": "AWS Account",
+        "type_id": 10,
+        "uid": "123456789012"
+      },
+      "org": {
+        "name": "ExampleCorp",
+        "uid": "o-example123456"
+      },
+      "provider": "AWS",
+      "region": "us-east-1"
+    },
+    "remediation": {
+      "desc": "Remove access keys from the root user account and use IAM users instead.",
+      "references": [
+        "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html#remove-credentials"
+      ]
+    }
+  },
+  {
+    "metadata": {
+      "event_code": "prowler",
+      "product": {
+        "name": "Prowler",
+        "version": "3.5.0",
+        "vendor_name": "Prowler"
+      },
+      "profiles": ["cloud"],
+      "version": "1.0.0"
+    },
+    "severity_id": 4,
+    "severity": "High",
+    "class_name": "Security Finding",
+    "class_uid": 2001,
+    "category_name": "Findings",
+    "category_uid": 2,
+    "confidence": "High",
+    "confidence_id": 3,
+    "finding": {
+      "title": "IAM root user MFA should be enabled",
+      "desc": "The root user is the most privileged user in an AWS account. MFA adds an extra layer of protection on top of a user name and password.",
+      "uid": "aws_iam_root_mfa_enabled",
+      "types": ["Sensitive Data Identifiable"]
+    },
+    "resources": [
+      {
+        "name": "root",
+        "type": "AwsIamUser",
+        "uid": "arn:aws:iam::123456789012:root",
+        "account_uid": "123456789012",
+        "region": "us-east-1",
+        "data": {
+          "details": "Root user MFA is not enabled"
+        }
+      }
+    ],
+    "state": "New",
+    "state_id": 1,
+    "activity_name": "Create",
+    "activity_id": 1,
+    "type_name": "Security Finding: Create",
+    "type_uid": 200101,
+    "time": "2024-01-15T10:31:00.000Z",
+    "start_time": "2024-01-15T10:31:00.000Z",
+    "end_time": "2024-01-15T10:31:00.000Z",
+    "duration": 0,
+    "status": "Failure",
+    "status_code": "FAIL",
+    "status_detail": "Root user MFA not enabled",
+    "status_id": 2,
+    "cloud": {
+      "account": {
+        "name": "production-account",
+        "type": "AWS Account",
+        "type_id": 10,
+        "uid": "123456789012"
+      },
+      "org": {
+        "name": "ExampleCorp",
+        "uid": "o-example123456"
+      },
+      "provider": "AWS",
+      "region": "us-east-1"
+    },
+    "remediation": {
+      "desc": "Enable MFA for the root user account.",
+      "references": [
+        "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable_virtual.html"
+      ]
+    }
+  },
+  {
+    "metadata": {
+      "event_code": "prowler",
+      "product": {
+        "name": "Prowler",
+        "version": "3.5.0",
+        "vendor_name": "Prowler"
+      },
+      "profiles": ["cloud"],
+      "version": "1.0.0"
+    },
+    "severity_id": 2,
+    "severity": "Low",
+    "class_name": "Security Finding",
+    "class_uid": 2001,
+    "category_name": "Findings",
+    "category_uid": 2,
+    "confidence": "High",
+    "confidence_id": 3,
+    "finding": {
+      "title": "S3 bucket public access should be blocked",
+      "desc": "S3 buckets should not allow public access unless specifically required for business purposes.",
+      "uid": "aws_s3_bucket_public_access_blocked",
+      "types": ["Data Exposure"]
+    },
+    "resources": [
+      {
+        "name": "example-bucket-12345",
+        "type": "AwsS3Bucket",
+        "uid": "arn:aws:s3:::example-bucket-12345",
+        "account_uid": "123456789012",
+        "region": "us-east-1",
+        "data": {
+          "details": "Bucket allows public read access"
+        }
+      }
+    ],
+    "state": "New",
+    "state_id": 1,
+    "activity_name": "Create",
+    "activity_id": 1,
+    "type_name": "Security Finding: Create",
+    "type_uid": 200101,
+    "time": "2024-01-15T10:32:00.000Z",
+    "start_time": "2024-01-15T10:32:00.000Z",
+    "end_time": "2024-01-15T10:32:00.000Z",
+    "duration": 0,
+    "status": "Failure",
+    "status_code": "FAIL",
+    "status_detail": "Public access not blocked",
+    "status_id": 2,
+    "cloud": {
+      "account": {
+        "name": "production-account",
+        "type": "AWS Account",
+        "type_id": 10,
+        "uid": "123456789012"
+      },
+      "org": {
+        "name": "ExampleCorp",
+        "uid": "o-example123456"
+      },
+      "provider": "AWS",
+      "region": "us-east-1"
+    },
+    "remediation": {
+      "desc": "Configure bucket policy to block public access unless specifically required.",
+      "references": [
+        "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html"
+      ]
+    }
+  }
+]

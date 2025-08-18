@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Appendix</h1>
+
+<h2>Assessment Methodology</h2>
+
+<div class="alert alert-info">
+    <strong>Assessment Approach:</strong> This security assessment was conducted using automated scanning tools and industry-standard compliance frameworks to evaluate the security posture of cloud infrastructure.
+</div>
+
+<h3>Tools and Technologies</h3>
+
+<table>
+    <thead>
+        <tr>
+            <th>Tool</th>
+            <th>Version</th>
+            <th>Purpose</th>
+            <th>Coverage</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for product, count in summary.by_product.items() %}
+        <tr>
+            <td><strong>{{ product | title }}</strong></td>
+            <td>{{ tool_versions.get(product, 'Unknown') }}</td>
+            <td>Security scanning and compliance assessment</td>
+            <td>{{ count }} findings</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h3>Compliance Frameworks</h3>
+
+{% if summary.frameworks_covered %}
+<table>
+    <thead>
+        <tr>
+            <th>Framework</th>
+            <th>Description</th>
+            <th>Controls Evaluated</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for framework in summary.frameworks_covered %}
+        <tr>
+            <td><strong>{{ framework | replace('_', ' ') | title }}</strong></td>
+            <td>
+                {% if framework.startswith('cis_') %}
+                Center for Internet Security Benchmark
+                {% elif framework.startswith('nist_') %}
+                NIST Cybersecurity Framework
+                {% elif framework.startswith('soc2_') %}
+                SOC 2 Type II Controls
+                {% else %}
+                Industry security standard
+                {% endif %}
+            </td>
+            <td class="text-center">
+                {{ framework_scores.get(framework, {}).get('total', 'N/A') }}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p><em>No compliance frameworks were applied to this assessment.</em></p>
+{% endif %}
+
+<h2>Assessment Scope</h2>
+
+<h3>Cloud Providers</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Provider</th>
+            <th>Accounts</th>
+            <th>Resources</th>
+            <th>Findings</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for provider, count in summary.by_provider.items() %}
+        {% set provider_data = provider_breakdowns.get(provider, {}) %}
+        <tr>
+            <td><strong>{{ provider.upper() }}</strong></td>
+            <td class="text-center">{{ provider_data.get('unique_accounts', 0) }}</td>
+            <td class="text-center">{{ provider_data.get('unique_resources', 0) }}</td>
+            <td class="text-center">{{ count }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h3>Assessment Timeline</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Metric</th>
+            <th>Value</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>Assessment Date</strong></td>
+            <td>{{ assessment_date | default(current_date) }}</td>
+        </tr>
+        {% if summary.scan_time_range.start and summary.scan_time_range.end %}
+        <tr>
+            <td><strong>Scan Start Time</strong></td>
+            <td>{{ summary.scan_time_range.start.strftime('%Y-%m-%d %H:%M:%S UTC') }}</td>
+        </tr>
+        <tr>
+            <td><strong>Scan End Time</strong></td>
+            <td>{{ summary.scan_time_range.end.strftime('%Y-%m-%d %H:%M:%S UTC') }}</td>
+        </tr>
+        <tr>
+            <td><strong>Total Scan Duration</strong></td>
+            <td>{{ (summary.scan_time_range.end - summary.scan_time_range.start).total_seconds() | int }} seconds</td>
+        </tr>
+        {% endif %}
+        <tr>
+            <td><strong>Report Generated</strong></td>
+            <td>{{ current_date }}</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>Risk Rating Methodology</h2>
+
+<div class="alert alert-info">
+    <strong>Risk Classification:</strong> Findings are classified using a standardized severity scale based on potential impact and exploitability.
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Severity</th>
+            <th>Description</th>
+            <th>Recommended Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="severity-critical">Critical</td>
+            <td>Immediate threat to security; active exploitation possible</td>
+            <td>Fix immediately (within 24 hours)</td>
+        </tr>
+        <tr>
+            <td class="severity-high">High</td>
+            <td>Significant security risk; could lead to compromise</td>
+            <td>Fix within 7 days</td>
+        </tr>
+        <tr>
+            <td class="severity-medium">Medium</td>
+            <td>Moderate security risk; requires attention</td>
+            <td>Fix within 30 days</td>
+        </tr>
+        <tr>
+            <td class="severity-low">Low</td>
+            <td>Minor security issue; low probability of exploitation</td>
+            <td>Fix in next maintenance cycle</td>
+        </tr>
+        <tr>
+            <td class="severity-informational">Informational</td>
+            <td>Security best practice; no immediate risk</td>
+            <td>Consider for future improvements</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>Limitations and Disclaimers</h2>
+
+<div class="alert alert-warning">
+    <strong>Important:</strong> This assessment is based on automated scanning tools and may not identify all security issues. Manual security reviews and penetration testing are recommended for comprehensive security evaluation.
+</div>
+
+<ul>
+    <li><strong>Point-in-time Assessment:</strong> This report reflects the security posture at the time of scanning. Cloud environments are dynamic, and new issues may arise after the assessment.</li>
+    <li><strong>Tool Limitations:</strong> Automated tools may produce false positives or miss certain types of vulnerabilities that require manual analysis.</li>
+    <li><strong>Scope Limitations:</strong> This assessment covers only the resources and services accessible to the scanning tools with the provided permissions.</li>
+    <li><strong>Configuration Dependencies:</strong> Some findings may be dependent on specific configurations or business requirements that were not considered during the automated assessment.</li>
+</ul>
+
+{% if include_raw_data and raw_sample_data %}
+<div class="page-break"></div>
+
+<h2>Sample Raw Data</h2>
+
+<div class="alert alert-warning">
+    <strong>Technical Data:</strong> This section contains raw technical data from the security scanning tools for reference and further analysis.
+</div>
+
+<h3>Sample Finding (Raw JSON)</h3>
+<pre><code>{{ raw_sample_data | tojson(indent=2) }}</code></pre>
+
+<p><em>Note: Sensitive information such as account IDs and resource identifiers may be redacted for security purposes.</em></p>
+{% endif %}
+
+<h2>Glossary</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Term</th>
+            <th>Definition</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>OCSF</strong></td>
+            <td>Open Cybersecurity Schema Framework - A standardized format for security event data</td>
+        </tr>
+        <tr>
+            <td><strong>CIS Benchmark</strong></td>
+            <td>Center for Internet Security configuration guidelines for secure system setup</td>
+        </tr>
+        <tr>
+            <td><strong>NIST CSF</strong></td>
+            <td>National Institute of Standards and Technology Cybersecurity Framework</td>
+        </tr>
+        <tr>
+            <td><strong>IAM</strong></td>
+            <td>Identity and Access Management - Controls for user authentication and authorization</td>
+        </tr>
+        <tr>
+            <td><strong>VPC</strong></td>
+            <td>Virtual Private Cloud - Isolated network environment in cloud infrastructure</td>
+        </tr>
+        <tr>
+            <td><strong>CloudTrail</strong></td>
+            <td>AWS service that provides audit logging of API calls and user activities</td>
+        </tr>
+        <tr>
+            <td><strong>Compliance</strong></td>
+            <td>Adherence to regulatory requirements, industry standards, and security best practices</td>
+        </tr>
+    </tbody>
+</table>
+
+<div style="margin-top: 40px; text-align: center; color: #7f8c8d;">
+    <p><em>End of Report</em></p>
+    <p>Generated by CS Kit - Cloud Security Testing Toolkit</p>
+</div>
+
+{% endblock %}

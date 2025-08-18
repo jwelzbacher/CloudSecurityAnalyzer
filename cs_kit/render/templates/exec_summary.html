@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Executive Summary</h1>
+
+<div class="alert alert-info">
+    <strong>Assessment Overview:</strong> This security assessment analyzed {{ summary.unique_resources }} resources across {{ summary.unique_accounts }} cloud accounts using industry-standard security frameworks and automated scanning tools.
+</div>
+
+<h2>Key Findings</h2>
+
+<div class="metrics-grid">
+    <div class="metric-card">
+        <span class="metric-value" style="color: #e74c3c;">{{ summary.by_severity.get('critical', 0) + summary.by_severity.get('high', 0) }}</span>
+        <div class="metric-label">High-Risk Issues</div>
+    </div>
+    
+    <div class="metric-card">
+        <span class="metric-value" style="color: #f39c12;">{{ summary.by_severity.get('medium', 0) }}</span>
+        <div class="metric-label">Medium-Risk Issues</div>
+    </div>
+    
+    <div class="metric-card">
+        <span class="metric-value" style="color: #27ae60;">{{ summary.by_status.get('pass', 0) }}</span>
+        <div class="metric-label">Compliant Controls</div>
+    </div>
+    
+    <div class="metric-card">
+        <span class="metric-value" style="color: #e74c3c;">{{ summary.by_status.get('fail', 0) }}</span>
+        <div class="metric-label">Failed Controls</div>
+    </div>
+</div>
+
+<h2>Risk Assessment</h2>
+
+{% set total_findings = summary.total_findings %}
+{% set critical_high = summary.by_severity.get('critical', 0) + summary.by_severity.get('high', 0) %}
+{% set medium = summary.by_severity.get('medium', 0) %}
+{% set low_info = summary.by_severity.get('low', 0) + summary.by_severity.get('informational', 0) %}
+
+<div style="margin: 20px 0;">
+    {% if critical_high > 0 %}
+    <div class="alert alert-danger">
+        <strong>High Priority:</strong> {{ critical_high }} critical or high-severity findings require immediate attention. These issues pose significant security risks and should be addressed as soon as possible.
+    </div>
+    {% endif %}
+
+    {% if medium > 0 %}
+    <div class="alert alert-warning">
+        <strong>Medium Priority:</strong> {{ medium }} medium-severity findings should be addressed in the next maintenance cycle. While not immediately critical, these issues could become problematic if left unaddressed.
+    </div>
+    {% endif %}
+
+    {% if low_info > 0 %}
+    <div class="alert alert-info">
+        <strong>Low Priority:</strong> {{ low_info }} low-severity or informational findings provide opportunities for security improvements and should be considered for future remediation efforts.
+    </div>
+    {% endif %}
+</div>
+
+<h2>Compliance Status</h2>
+
+{% if summary.frameworks_covered %}
+<p>This assessment evaluated compliance against the following frameworks:</p>
+<ul>
+    {% for framework in summary.frameworks_covered %}
+    <li><strong>{{ framework | replace('_', ' ') | title }}</strong></li>
+    {% endfor %}
+</ul>
+
+{% if framework_scores %}
+<table>
+    <thead>
+        <tr>
+            <th>Framework</th>
+            <th>Passed</th>
+            <th>Failed</th>
+            <th>Warnings</th>
+            <th>Compliance Rate</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for framework, score in framework_scores.items() %}
+        {% set total_controls = score.pass + score.fail + score.warn %}
+        {% set compliance_rate = (score.pass / total_controls * 100) if total_controls > 0 else 0 %}
+        <tr>
+            <td><strong>{{ framework | replace('_', ' ') | title }}</strong></td>
+            <td class="status-pass text-center">{{ score.pass }}</td>
+            <td class="status-fail text-center">{{ score.fail }}</td>
+            <td class="status-warn text-center">{{ score.warn }}</td>
+            <td class="text-center">
+                <strong>{{ "%.1f" | format(compliance_rate) }}%</strong>
+                <div class="progress-bar" style="margin-top: 5px;">
+                    <div class="progress-fill" style="width: {{ compliance_rate }}%; background-color: {% if compliance_rate >= 80 %}#27ae60{% elif compliance_rate >= 60 %}#f39c12{% else %}#e74c3c{% endif %};"></div>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% else %}
+<div class="alert alert-warning">
+    <strong>Note:</strong> No compliance framework mappings were applied to this assessment. Consider applying relevant frameworks for better compliance tracking.
+</div>
+{% endif %}
+
+<h2>Cloud Provider Breakdown</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Provider</th>
+            <th>Total Findings</th>
+            <th>Critical/High</th>
+            <th>Medium</th>
+            <th>Low/Info</th>
+            <th>Resources</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for provider, count in summary.by_provider.items() %}
+        {% set provider_breakdown = provider_breakdowns.get(provider, {}) %}
+        <tr>
+            <td><strong>{{ provider.upper() }}</strong></td>
+            <td class="text-center">{{ count }}</td>
+            <td class="text-center" style="color: #e74c3c;">
+                {{ provider_breakdown.get('by_severity', {}).get('critical', 0) + provider_breakdown.get('by_severity', {}).get('high', 0) }}
+            </td>
+            <td class="text-center" style="color: #f39c12;">
+                {{ provider_breakdown.get('by_severity', {}).get('medium', 0) }}
+            </td>
+            <td class="text-center" style="color: #3498db;">
+                {{ provider_breakdown.get('by_severity', {}).get('low', 0) + provider_breakdown.get('by_severity', {}).get('informational', 0) }}
+            </td>
+            <td class="text-center">{{ provider_breakdown.get('unique_resources', 0) }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2>Recommendations</h2>
+
+<div style="margin: 20px 0;">
+    <h3>Immediate Actions (Next 30 days)</h3>
+    <ul>
+        {% if critical_high > 0 %}
+        <li>Address all {{ critical_high }} critical and high-severity findings</li>
+        <li>Implement emergency patches for critical vulnerabilities</li>
+        <li>Review and strengthen access controls</li>
+        {% else %}
+        <li>Continue monitoring for new security issues</li>
+        {% endif %}
+        <li>Establish regular security scanning schedule</li>
+    </ul>
+
+    <h3>Short-term Improvements (Next 90 days)</h3>
+    <ul>
+        {% if medium > 0 %}
+        <li>Remediate {{ medium }} medium-severity findings</li>
+        {% endif %}
+        <li>Implement automated security monitoring</li>
+        <li>Conduct security awareness training</li>
+        <li>Review and update security policies</li>
+    </ul>
+
+    <h3>Long-term Strategy (Next 12 months)</h3>
+    <ul>
+        <li>Establish comprehensive security governance framework</li>
+        <li>Implement DevSecOps practices</li>
+        <li>Regular compliance assessments</li>
+        <li>Security architecture reviews</li>
+    </ul>
+</div>
+
+<div class="page-break"></div>
+{% endblock %}

@@ -1,0 +1,9 @@
+provider: "azure"
+frameworks:
+  - "cis_azure_1_4"
+  - "nist_csf"
+regions: []  # Azure uses different regional concepts
+artifacts_dir: "./artifacts"
+scanners:
+  prowler: true
+redact_ids: false  # Example of different setting

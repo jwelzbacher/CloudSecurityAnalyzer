@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Detailed Findings</h1>
+
+<div class="alert alert-info">
+    <strong>Note:</strong> This section provides detailed information about each security finding, organized by compliance framework and control. Each finding includes the affected resource, current status, and remediation guidance.
+</div>
+
+{% if findings_by_framework %}
+    {% for framework, framework_data in findings_by_framework.items() %}
+    <div class="page-break"></div>
+    
+    <h2>{{ framework | replace('_', ' ') | title }} Framework</h2>
+    
+    <div class="metrics-grid" style="margin-bottom: 20px;">
+        <div class="metric-card">
+            <span class="metric-value">{{ framework_data.total }}</span>
+            <div class="metric-label">Total Findings</div>
+        </div>
+        <div class="metric-card">
+            <span class="metric-value" style="color: #e74c3c;">{{ framework_data.by_status.get('fail', 0) }}</span>
+            <div class="metric-label">Failed Controls</div>
+        </div>
+        <div class="metric-card">
+            <span class="metric-value" style="color: #27ae60;">{{ framework_data.by_status.get('pass', 0) }}</span>
+            <div class="metric-label">Passed Controls</div>
+        </div>
+        <div class="metric-card">
+            <span class="metric-value">{{ framework_data.controls_count }}</span>
+            <div class="metric-label">Controls Evaluated</div>
+        </div>
+    </div>
+
+    {% set findings_by_control = framework_data.findings | groupby('framework_refs') %}
+    {% for control_refs, control_findings in findings_by_control %}
+        {% set control_id = control_refs[0].split(':')[1] if control_refs and ':' in control_refs[0] else 'Unknown' %}
+        
+        <div class="no-break" style="margin-top: 30px;">
+            <h3>Control {{ control_id }}</h3>
+            
+            {% if control_findings %}
+            {% set first_finding = control_findings[0] %}
+            {% if first_finding.title %}
+            <p><strong>Title:</strong> {{ first_finding.title }}</p>
+            {% endif %}
+            {% if first_finding.description %}
+            <p><strong>Description:</strong> {{ first_finding.description }}</p>
+            {% endif %}
+            
+            <table style="margin-top: 15px;">
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">Status</th>
+                        <th style="width: 15%;">Severity</th>
+                        <th style="width: 25%;">Resource</th>
+                        <th style="width: 15%;">Account</th>
+                        <th style="width: 15%;">Region</th>
+                        <th style="width: 15%;">Product</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for finding in control_findings %}
+                    <tr>
+                        <td class="status-{{ finding.status or 'unknown' }}">
+                            {{ (finding.status or 'unknown') | title }}
+                        </td>
+                        <td class="severity-{{ finding.severity or 'unknown' }}">
+                            {{ (finding.severity or 'unknown') | title }}
+                        </td>
+                        <td style="font-family: monospace; font-size: 10px; word-break: break-all;">
+                            {{ finding.resource_id or 'N/A' }}
+                        </td>
+                        <td class="text-center">{{ finding.account_id or 'N/A' }}</td>
+                        <td class="text-center">{{ finding.region or 'N/A' }}</td>
+                        <td class="text-center">{{ finding.product }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% if first_finding.remediation %}
+            <div class="alert alert-info" style="margin-top: 10px;">
+                <strong>Remediation:</strong> {{ first_finding.remediation }}
+            </div>
+            {% endif %}
+            {% endif %}
+        </div>
+    {% endfor %}
+    {% endfor %}
+
+{% else %}
+    <!-- Fallback: Show findings without framework grouping -->
+    <h2>All Findings</h2>
+    
+    <div class="alert alert-warning">
+        <strong>Note:</strong> No compliance framework mappings were applied. Findings are listed by severity level.
+    </div>
+
+    {% set findings_by_severity = findings | groupby('severity') %}
+    {% for severity, severity_findings in findings_by_severity %}
+    
+    <h3>{{ (severity or 'Unknown') | title }} Severity Findings</h3>
+    
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 10%;">Status</th>
+                <th style="width: 25%;">Title</th>
+                <th style="width: 25%;">Resource</th>
+                <th style="width: 15%;">Account</th>
+                <th style="width: 10%;">Region</th>
+                <th style="width: 15%;">Product</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for finding in severity_findings %}
+            <tr>
+                <td class="status-{{ finding.status or 'unknown' }}">
+                    {{ (finding.status or 'unknown') | title }}
+                </td>
+                <td>{{ finding.title or finding.check_id or 'Untitled Finding' }}</td>
+                <td style="font-family: monospace; font-size: 10px; word-break: break-all;">
+                    {{ finding.resource_id or 'N/A' }}
+                </td>
+                <td class="text-center">{{ finding.account_id or 'N/A' }}</td>
+                <td class="text-center">{{ finding.region or 'N/A' }}</td>
+                <td class="text-center">{{ finding.product }}</td>
+            </tr>
+            {% if finding.description or finding.remediation %}
+            <tr>
+                <td colspan="6" style="background-color: #f8f9fa; font-size: 10px; border-top: none;">
+                    {% if finding.description %}
+                    <strong>Description:</strong> {{ finding.description }}<br>
+                    {% endif %}
+                    {% if finding.remediation %}
+                    <strong>Remediation:</strong> {{ finding.remediation }}
+                    {% endif %}
+                </td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endfor %}
+{% endif %}
+
+<div class="page-break"></div>
+
+<h2>Summary by Resource Type</h2>
+
+{% if resource_analysis and resource_analysis.resource_types %}
+<div class="alert alert-info">
+    <strong>Resource Coverage:</strong> This assessment analyzed {{ resource_analysis.unique_resources }} unique resources across {{ resource_analysis.unique_accounts }} accounts, with an average of {{ "%.1f" | format(resource_analysis.resources_per_account) }} resources per account.
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Resource Type</th>
+            <th>Finding Count</th>
+            <th>Percentage</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for resource_type, count in resource_analysis.resource_types.items() %}
+        <tr>
+            <td><strong>{{ resource_type }}</strong></td>
+            <td class="text-center">{{ count }}</td>
+            <td class="text-center">{{ "%.1f" | format((count / resource_analysis.unique_resources * 100) if resource_analysis.unique_resources > 0 else 0) }}%</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="alert alert-warning">
+    <strong>Note:</strong> Resource type analysis is not available for this assessment.
+</div>
+{% endif %}
+
+{% endblock %}
