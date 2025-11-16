@@ -1,0 +1,228 @@
+{
+  "tool": "cs_kit",
+  "version": "0.1.0",
+  "provider": "aws",
+  "framework_selection": ["SOC 2", "ISO 27001", "CIS AWS Foundations"],
+  "started_at": "2024-11-06T10:00:00Z",
+  "finished_at": "2024-11-06T10:15:00Z",
+  "findings": [
+    {
+      "check_id": "iam_credential_report_enabled",
+      "check_title": "Ensure IAM credential report is enabled",
+      "provider": "aws",
+      "service": "iam",
+      "severity": "high",
+      "status": "FAIL",
+      "account_id": "123456789012",
+      "region": "us-east-1",
+      "resource_id": "arn:aws:iam::123456789012:root",
+      "risk": "Unable to track credential usage and detect potential security issues",
+      "remediation": {
+        "text": "Enable IAM credential report generation",
+        "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_getting-report.html"
+      },
+      "categories": ["SOC2 CC6.1", "CIS 1.1"],
+      "frameworks": [
+        { "name": "SOC 2", "control": "CC6.1" },
+        { "name": "CIS AWS Foundations", "control": "1.1" }
+      ],
+      "timestamp": "2024-11-06T10:05:00Z"
+    },
+    {
+      "check_id": "s3_bucket_public_access_block",
+      "check_title": "Ensure S3 buckets have public access block enabled",
+      "provider": "aws",
+      "service": "s3",
+      "severity": "critical",
+      "status": "FAIL",
+      "account_id": "123456789012",
+      "region": "us-east-1",
+      "resource_id": "arn:aws:s3:::my-bucket",
+      "risk": "Bucket may be publicly accessible, exposing sensitive data",
+      "remediation": {
+        "text": "Enable public access block on the S3 bucket",
+        "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html"
+      },
+      "categories": ["SOC2 CC6.2", "CIS 2.1.1"],
+      "frameworks": [
+        { "name": "SOC 2", "control": "CC6.2" },
+        { "name": "CIS AWS Foundations", "control": "2.1.1" }
+      ],
+      "timestamp": "2024-11-06T10:06:00Z"
+    },
+    {
+      "check_id": "cloudtrail_logging_enabled",
+      "check_title": "Ensure CloudTrail logging is enabled",
+      "provider": "aws",
+      "service": "cloudtrail",
+      "severity": "high",
+      "status": "PASS",
+      "account_id": "123456789012",
+      "region": "us-east-1",
+      "resource_id": "arn:aws:cloudtrail:us-east-1:123456789012:trail/my-trail",
+      "risk": "Unable to audit API calls and detect security incidents",
+      "remediation": {
+        "text": "Enable CloudTrail logging",
+        "url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html"
+      },
+      "categories": ["SOC2 CC7.2", "CIS 3.1"],
+      "frameworks": [
+        { "name": "SOC 2", "control": "CC7.2" },
+        { "name": "CIS AWS Foundations", "control": "3.1" }
+      ],
+      "timestamp": "2024-11-06T10:07:00Z"
+    },
+    {
+      "check_id": "ec2_security_group_restrict_ssh",
+      "check_title": "Ensure security groups restrict SSH access",
+      "provider": "aws",
+      "service": "ec2",
+      "severity": "medium",
+      "status": "FAIL",
+      "account_id": "123456789012",
+      "region": "us-east-1",
+      "resource_id": "sg-12345678",
+      "risk": "SSH access may be open to the internet",
+      "remediation": {
+        "text": "Restrict SSH access to specific IP addresses",
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/working-with-security-groups.html"
+      },
+      "categories": ["SOC2 CC6.6", "CIS 4.2"],
+      "frameworks": [
+        { "name": "SOC 2", "control": "CC6.6" },
+        { "name": "CIS AWS Foundations", "control": "4.2" }
+      ],
+      "timestamp": "2024-11-06T10:08:00Z"
+    },
+    {
+      "check_id": "rds_encryption_enabled",
+      "check_title": "Ensure RDS instances have encryption enabled",
+      "provider": "aws",
+      "service": "rds",
+      "severity": "high",
+      "status": "FAIL",
+      "account_id": "123456789012",
+      "region": "us-east-1",
+      "resource_id": "arn:aws:rds:us-east-1:123456789012:db:mydb",
+      "risk": "Database data may be exposed if storage is compromised",
+      "remediation": {
+        "text": "Enable encryption at rest for RDS instances",
+        "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.Encryption.html"
+      },
+      "categories": ["SOC2 CC6.7", "ISO 27001 A.10.1.2"],
+      "frameworks": [
+        { "name": "SOC 2", "control": "CC6.7" },
+        { "name": "ISO 27001", "control": "A.10.1.2" }
+      ],
+      "timestamp": "2024-11-06T10:09:00Z"
+    },
+    {
+      "check_id": "lambda_function_public_access",
+      "check_title": "Ensure Lambda functions are not publicly accessible",
+      "provider": "aws",
+      "service": "lambda",
+      "severity": "medium",
+      "status": "PASS",
+      "account_id": "123456789012",
+      "region": "us-east-1",
+      "resource_id": "arn:aws:lambda:us-east-1:123456789012:function:my-function",
+      "risk": "Public Lambda functions may be invoked by unauthorized users",
+      "remediation": {
+        "text": "Remove public access from Lambda function",
+        "url": "https://docs.aws.amazon.com/lambda/latest/dg/access-control-resource-based.html"
+      },
+      "categories": ["SOC2 CC6.1"],
+      "frameworks": [
+        { "name": "SOC 2", "control": "CC6.1" }
+      ],
+      "timestamp": "2024-11-06T10:10:00Z"
+    },
+    {
+      "check_id": "kms_key_rotation_enabled",
+      "check_title": "Ensure KMS keys have automatic rotation enabled",
+      "provider": "aws",
+      "service": "kms",
+      "severity": "low",
+      "status": "FAIL",
+      "account_id": "123456789012",
+      "region": "us-east-1",
+      "resource_id": "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
+      "risk": "Keys may become compromised over time without rotation",
+      "remediation": {
+        "text": "Enable automatic key rotation",
+        "url": "https://docs.aws.amazon.com/kms/latest/developerguide/rotate-keys.html"
+      },
+      "categories": ["SOC2 CC6.7", "NIST 800-53 SC-12"],
+      "frameworks": [
+        { "name": "SOC 2", "control": "CC6.7" },
+        { "name": "NIST 800-53", "control": "SC-12" }
+      ],
+      "timestamp": "2024-11-06T10:11:00Z"
+    },
+    {
+      "check_id": "vpc_flow_logs_enabled",
+      "check_title": "Ensure VPC flow logs are enabled",
+      "provider": "aws",
+      "service": "vpc",
+      "severity": "medium",
+      "status": "INFO",
+      "account_id": "123456789012",
+      "region": "us-east-1",
+      "resource_id": "vpc-12345678",
+      "risk": "Unable to monitor network traffic for security incidents",
+      "remediation": {
+        "text": "Enable VPC flow logs",
+        "url": "https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html"
+      },
+      "categories": ["SOC2 CC7.2"],
+      "frameworks": [
+        { "name": "SOC 2", "control": "CC7.2" }
+      ],
+      "timestamp": "2024-11-06T10:12:00Z"
+    },
+    {
+      "check_id": "guardduty_enabled",
+      "check_title": "Ensure GuardDuty is enabled",
+      "provider": "aws",
+      "service": "guardduty",
+      "severity": "high",
+      "status": "SKIP",
+      "account_id": "123456789012",
+      "region": "us-east-1",
+      "resource_id": "arn:aws:guardduty:us-east-1:123456789012:detector/123456789012",
+      "risk": "Unable to detect threats and security issues",
+      "remediation": {
+        "text": "Enable GuardDuty in all regions",
+        "url": "https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_settingup.html"
+      },
+      "categories": ["SOC2 CC7.4"],
+      "frameworks": [
+        { "name": "SOC 2", "control": "CC7.4" }
+      ],
+      "timestamp": "2024-11-06T10:13:00Z"
+    },
+    {
+      "check_id": "config_service_enabled",
+      "check_title": "Ensure AWS Config is enabled",
+      "provider": "aws",
+      "service": "config",
+      "severity": "medium",
+      "status": "PASS",
+      "account_id": "123456789012",
+      "region": "us-east-1",
+      "resource_id": "arn:aws:config:us-east-1:123456789012:config-rule/config-rule-12345678",
+      "risk": "Unable to track configuration changes",
+      "remediation": {
+        "text": "Enable AWS Config service",
+        "url": "https://docs.aws.amazon.com/config/latest/developerguide/gs-console.html"
+      },
+      "categories": ["SOC2 CC7.2", "CIS 2.5"],
+      "frameworks": [
+        { "name": "SOC 2", "control": "CC7.2" },
+        { "name": "CIS AWS Foundations", "control": "2.5" }
+      ],
+      "timestamp": "2024-11-06T10:14:00Z"
+    }
+  ]
+}
+

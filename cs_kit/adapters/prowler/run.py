@@ -7,7 +7,7 @@ import shutil
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Optional
 
 from cs_kit.adapters.prowler.exceptions import ProwlerError, ProwlerNotFoundError
 
@@ -47,22 +47,33 @@ async def run_prowler(
     provider_out_dir = out_dir / f"scanner=prowler" / f"provider={provider}"
     provider_out_dir.mkdir(parents=True, exist_ok=True)
 
-    # Build prowler command
-    cmd = _build_prowler_command(provider, frameworks, regions, provider_out_dir)
+    # Build list of compliance IDs to run (prowler only accepts one at a time)
+    compliance_ids = frameworks if frameworks else [None]
+    json_files: list[Path] = []
+    existing_files = {path.resolve() for path in provider_out_dir.glob("*.json")}
 
-    # Run prowler
-    try:
-        result = await _run_prowler_subprocess(cmd, env)
-        if result.returncode != 0:
-            raise ProwlerError(
-                f"Prowler execution failed with return code {result.returncode}: "
-                f"{result.stderr}"
-            )
-    except FileNotFoundError as e:
-        raise ProwlerNotFoundError(f"Failed to execute prowler: {e}") from e
+    for compliance in compliance_ids:
+        cmd = _build_prowler_command(provider, compliance, regions, provider_out_dir)
 
-    # Find and return generated JSON files
-    json_files = list(provider_out_dir.glob("*.json"))
+        try:
+            result = await _run_prowler_subprocess(cmd, env)
+            # Exit code 3 is normal for Prowler when findings are detected (not an error)
+            if result.returncode != 0 and result.returncode != 3:
+                raise ProwlerError(
+                    f"Prowler execution failed with return code {result.returncode}: "
+                    f"{result.stderr}"
+                )
+        except FileNotFoundError as e:
+            raise ProwlerNotFoundError(f"Failed to execute prowler: {e}") from e
+
+        new_files = [
+            path
+            for path in provider_out_dir.glob("*.json")
+            if path.resolve() not in existing_files
+        ]
+        json_files.extend(new_files)
+        existing_files.update(path.resolve() for path in new_files)
+
     if not json_files:
         raise ProwlerError(
             f"No JSON output files found in {provider_out_dir}. "
@@ -74,7 +85,7 @@ async def run_prowler(
 
 def _build_prowler_command(
     provider: Literal["aws", "gcp", "azure"],
-    frameworks: list[str],
+    compliance: Optional[str],
     regions: list[str],
     out_dir: Path,
 ) -> list[str]:
@@ -101,14 +112,14 @@ def _build_prowler_command(
     if provider == "aws":
         if regions:
             cmd.extend(["-f", ",".join(regions)])
-        if frameworks:
-            cmd.extend(["--compliance", ",".join(frameworks)])
+        if compliance:
+            cmd.extend(["--compliance", compliance])
     elif provider == "gcp":
-        if frameworks:
-            cmd.extend(["--compliance", ",".join(frameworks)])
+        if compliance:
+            cmd.extend(["--compliance", compliance])
     elif provider == "azure":
-        if frameworks:
-            cmd.extend(["--compliance", ",".join(frameworks)])
+        if compliance:
+            cmd.extend(["--compliance", compliance])
 
     return cmd
 

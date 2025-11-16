@@ -254,6 +254,11 @@ async def _run_scan(config: RunConfig, run_id: str, output_path: Optional[str], 
     reports_dir = Path("reports")
     reports_dir.mkdir(exist_ok=True)
     
+    report_metadata: dict[str, Optional[str]] = {
+        "report_path": None,
+        "report_error": None,
+    }
+
     with Progress(
         SpinnerColumn(),
         TextColumn("[progress.description]{task.description}"),
@@ -344,13 +349,27 @@ async def _run_scan(config: RunConfig, run_id: str, output_path: Optional[str], 
         task = progress.add_task("Generating PDF report...", total=None)
         
         renderer_config = RendererConfig(company_name=company_name)
-        generate_report(enriched_findings, summary, Path(output_path), renderer_config)
-        
-        progress.remove_task(task)
-        console.print(f"[green]✓ Generated PDF report: {output_path}[/green]")
+        report_metadata["report_path"] = output_path
+
+        try:
+            generate_report(enriched_findings, summary, Path(output_path), renderer_config)
+        except Exception as exc:  # pylint: disable=broad-except
+            progress.remove_task(task)
+            report_metadata["report_error"] = str(exc)
+            console.print(
+                f"[yellow]Warning: Failed to generate PDF report ({exc}). "
+                "You can still view normalized JSON results.[/yellow]"
+            )
+        else:
+            progress.remove_task(task)
+            console.print(f"[green]✓ Generated PDF report: {output_path}[/green]")
     
     # Display summary
     _display_scan_summary(summary, enriched_findings)
+
+    metadata_file = run_artifacts_dir / "metadata.json"
+    with metadata_file.open("w", encoding="utf-8") as metadata_handle:
+        json.dump(report_metadata, metadata_handle, indent=2)
 
 
 def _display_scan_summary(summary, findings) -> None:
