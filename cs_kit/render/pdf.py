@@ -30,7 +30,10 @@ def _check_weasyprint() -> bool:
         return False
 
 from cs_kit.cli.config import RendererConfig  # noqa: E402
-from cs_kit.normalizer.ocsf_models import FindingSummary, OCSFEnrichedFinding  # noqa: E402
+from cs_kit.normalizer.ocsf_models import (  # noqa: E402
+    FindingSummary,
+    OCSFEnrichedFinding,
+)
 from cs_kit.normalizer.summarize import (  # noqa: E402
     by_framework,
     by_provider,
