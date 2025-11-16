@@ -1,13 +1,11 @@
 """Prowler security scanner adapter."""
 
 import asyncio
-import json
 import os
 import shutil
 import subprocess
-import tempfile
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Literal
 
 from cs_kit.adapters.prowler.exceptions import ProwlerError, ProwlerNotFoundError
 
@@ -44,7 +42,7 @@ async def run_prowler(
         )
 
     # Create provider-specific output directory
-    provider_out_dir = out_dir / f"scanner=prowler" / f"provider={provider}"
+    provider_out_dir = out_dir / "scanner=prowler" / f"provider={provider}"
     provider_out_dir.mkdir(parents=True, exist_ok=True)
 
     # Build list of compliance IDs to run (prowler only accepts one at a time)
@@ -85,7 +83,7 @@ async def run_prowler(
 
 def _build_prowler_command(
     provider: Literal["aws", "gcp", "azure"],
-    compliance: Optional[str],
+    compliance: str | None,
     regions: list[str],
     out_dir: Path,
 ) -> list[str]:

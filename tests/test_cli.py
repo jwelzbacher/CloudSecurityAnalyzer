@@ -2,7 +2,7 @@
 
 import json
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -43,7 +43,7 @@ class TestCLI:
         # Mock return values
         mock_prowler_frameworks.return_value = ["cis_aws_1_4", "nist_csf"]
         mock_mappings.return_value = ["cis_aws_1_4", "custom_framework"]
-        
+
         result = self.runner.invoke(cli, ["list-frameworks"])
         assert result.exit_code == 0
         assert "cis_aws_1_4" in result.stdout
@@ -59,7 +59,7 @@ class TestCLI:
         # Mock errors
         mock_prowler_frameworks.side_effect = Exception("Prowler not available")
         mock_mappings.side_effect = Exception("Mappings not found")
-        
+
         result = self.runner.invoke(cli, ["list-frameworks"])
         assert result.exit_code == 0  # Should not fail, just show errors
         assert "Error getting Prowler frameworks" in result.stdout
@@ -81,11 +81,11 @@ class TestCLI:
             "scanners": {"prowler": True},
             "redact_ids": True,
         }
-        
+
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
             json.dump(config_data, f)
             config_file = Path(f.name)
-        
+
         try:
             result = self.runner.invoke(cli, ["validate", str(config_file)])
             assert result.exit_code == 0
@@ -100,11 +100,11 @@ class TestCLI:
             "provider": "invalid_provider",  # Invalid
             "artifacts_dir": "/tmp/artifacts",
         }
-        
+
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
             json.dump(config_data, f)
             config_file = Path(f.name)
-        
+
         try:
             result = self.runner.invoke(cli, ["validate", str(config_file)])
             assert result.exit_code == 1
@@ -134,7 +134,7 @@ class TestCLI:
                 "status": "fail",
             }
         ]
-        
+
         # Mock summary
         mock_summary.return_value = FindingSummary(
             total_findings=1,
@@ -145,14 +145,14 @@ class TestCLI:
             unique_resources=1,
             unique_accounts=1,
         )
-        
+
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
             json.dump(test_findings, f)
             input_file = Path(f.name)
-        
+
         with tempfile.TemporaryDirectory() as tmp_dir:
             output_file = Path(tmp_dir) / "test_report.pdf"
-            
+
             try:
                 result = self.runner.invoke(cli, [
                     "render", str(input_file), str(output_file),
@@ -169,7 +169,7 @@ class TestCLI:
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
             json.dump("invalid format", f)
             input_file = Path(f.name)
-        
+
         try:
             result = self.runner.invoke(cli, ["render", str(input_file), "output.pdf"])
             assert result.exit_code == 1
@@ -181,7 +181,7 @@ class TestCLI:
     def test_run_command_basic(self, mock_run_scan: AsyncMock) -> None:
         """Test basic run command."""
         mock_run_scan.return_value = None
-        
+
         with tempfile.TemporaryDirectory() as tmp_dir:
             result = self.runner.invoke(cli, [
                 "run",
@@ -191,7 +191,7 @@ class TestCLI:
                 "--artifacts-dir", tmp_dir,
                 "--company-name", "Test Company"
             ])
-            
+
             # Should not fail (mock prevents actual execution)
             mock_run_scan.assert_called_once()
 
@@ -199,31 +199,31 @@ class TestCLI:
     def test_run_command_with_output(self, mock_run_scan: AsyncMock) -> None:
         """Test run command with custom output path."""
         mock_run_scan.return_value = None
-        
+
         with tempfile.TemporaryDirectory() as tmp_dir:
             output_path = Path(tmp_dir) / "custom_report.pdf"
-            
+
             result = self.runner.invoke(cli, [
                 "run",
                 "--provider", "gcp",
                 "--output", str(output_path),
                 "--artifacts-dir", tmp_dir,
             ])
-            
+
             mock_run_scan.assert_called_once()
 
     @patch('cs_kit.cli.main_click._run_scan')
     def test_run_command_error(self, mock_run_scan: AsyncMock) -> None:
         """Test run command with scan error."""
         mock_run_scan.side_effect = Exception("Scan failed")
-        
+
         with tempfile.TemporaryDirectory() as tmp_dir:
             result = self.runner.invoke(cli, [
                 "run",
                 "--provider", "aws",
                 "--artifacts-dir", tmp_dir,
             ])
-            
+
             assert result.exit_code == 1
             assert "Scan failed" in result.stdout
 
@@ -249,14 +249,14 @@ class TestRunScanInternal:
         """Test complete scan flow."""
         from cs_kit.cli.config import RunConfig
         from cs_kit.cli.main_click import _run_scan
-        
+
         # Mock return values
         mock_select.return_value = ["prowler"]
         mock_prowler.return_value = [Path("/tmp/scan1.json")]
-        
+
         # Create mock finding
         mock_finding = OCSFEnrichedFinding(
-            time=datetime.now(timezone.utc),
+            time=datetime.now(UTC),
             provider="aws",
             product="prowler",
             severity="high",
@@ -264,7 +264,7 @@ class TestRunScanInternal:
         )
         mock_parse.return_value = [mock_finding]
         mock_mapping.return_value = [mock_finding]
-        
+
         mock_summary.return_value = FindingSummary(
             total_findings=1,
             by_severity={"high": 1},
@@ -274,7 +274,7 @@ class TestRunScanInternal:
             unique_resources=1,
             unique_accounts=1,
         )
-        
+
         # Create test configuration
         config = RunConfig(
             provider="aws",
@@ -282,15 +282,15 @@ class TestRunScanInternal:
             regions=["us-east-1"],
             artifacts_dir="/tmp/artifacts",
         )
-        
+
         with tempfile.TemporaryDirectory() as tmp_dir:
             artifacts_dir = Path(tmp_dir)
             config.artifacts_dir = str(artifacts_dir)
-            
+
             # Run the scan (this is async)
             import asyncio
             asyncio.run(_run_scan(config, "test_run", None, "Test Company"))
-            
+
             # Verify calls
             mock_select.assert_called_once()
             mock_prowler.assert_called_once()
@@ -304,14 +304,14 @@ class TestRunScanInternal:
         """Test scan with no available scanners."""
         from cs_kit.cli.config import RunConfig
         from cs_kit.cli.main_click import _run_scan
-        
+
         mock_select.return_value = []  # No scanners
-        
+
         config = RunConfig(
             provider="aws",
             artifacts_dir="/tmp/artifacts",
         )
-        
+
         with pytest.raises(ValueError, match="No scanners selected"):
             import asyncio
             asyncio.run(_run_scan(config, "test_run", None, "Test Company"))
@@ -332,18 +332,18 @@ class TestRunScanInternal:
         """Test scan without framework mappings."""
         from cs_kit.cli.config import RunConfig
         from cs_kit.cli.main_click import _run_scan
-        
+
         # Mock return values
         mock_select.return_value = ["prowler"]
         mock_prowler.return_value = [Path("/tmp/scan1.json")]
-        
+
         mock_finding = OCSFEnrichedFinding(
-            time=datetime.now(timezone.utc),
+            time=datetime.now(UTC),
             provider="aws",
             product="prowler",
         )
         mock_parse.return_value = [mock_finding]
-        
+
         mock_summary.return_value = FindingSummary(
             total_findings=1,
             by_provider={"aws": 1},
@@ -351,21 +351,21 @@ class TestRunScanInternal:
             unique_resources=1,
             unique_accounts=1,
         )
-        
+
         # Config without frameworks
         config = RunConfig(
             provider="aws",
             frameworks=[],  # No frameworks
             artifacts_dir="/tmp/artifacts",
         )
-        
+
         with tempfile.TemporaryDirectory() as tmp_dir:
             artifacts_dir = Path(tmp_dir)
             config.artifacts_dir = str(artifacts_dir)
-            
+
             import asyncio
             asyncio.run(_run_scan(config, "test_run", None, "Test Company"))
-            
+
             # Should not call apply_mapping
             mock_summary.assert_called_once()
             mock_report.assert_called_once()
@@ -377,7 +377,7 @@ class TestDisplayScanSummary:
     def test_display_scan_summary(self, capsys) -> None:
         """Test scan summary display."""
         from cs_kit.cli.main_click import _display_scan_summary
-        
+
         summary = FindingSummary(
             total_findings=10,
             by_severity={"high": 3, "medium": 5, "low": 2},
@@ -387,11 +387,11 @@ class TestDisplayScanSummary:
             unique_resources=5,
             unique_accounts=2,
         )
-        
+
         findings = []  # Not used in the function
-        
+
         _display_scan_summary(summary, findings)
-        
+
         # The function uses Rich console, so we can't easily capture output
         # But we can verify it doesn't crash
         assert True  # Function completed without error

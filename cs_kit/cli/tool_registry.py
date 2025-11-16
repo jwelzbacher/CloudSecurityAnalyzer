@@ -40,31 +40,31 @@ def validate_scanner_support(
     provider: Literal["aws", "gcp", "azure"], scanner: str
 ) -> None:
     """Validate that a scanner is supported for a provider.
-    
+
     Args:
         provider: Cloud provider
         scanner: Scanner name
-        
+
     Raises:
         UnknownScannerError: If scanner is not recognized
         UnsupportedScannerError: If scanner doesn't support the provider
     """
     if scanner not in SUPPORTED_SCANNERS:
         raise UnknownScannerError(scanner)
-    
+
     if scanner not in PROVIDER_SUPPORT[provider]:
         raise UnsupportedScannerError(provider, scanner)
 
 
 def select_scanners(config: RunConfig) -> list[str]:
     """Select enabled scanners that are valid for the provider.
-    
+
     Args:
         config: Run configuration
-        
+
     Returns:
         List of enabled and supported scanner names
-        
+
     Raises:
         UnknownScannerError: If an enabled scanner is not recognized
         UnsupportedScannerError: If an enabled scanner doesn't support the provider
@@ -72,11 +72,11 @@ def select_scanners(config: RunConfig) -> list[str]:
     enabled_scanners = [
         scanner for scanner, enabled in config.scanners.items() if enabled
     ]
-    
+
     # Validate each enabled scanner
     for scanner in enabled_scanners:
         validate_scanner_support(config.provider, scanner)
-    
+
     return enabled_scanners
 
 
@@ -84,10 +84,10 @@ def get_supported_scanners_for_provider(
     provider: Literal["aws", "gcp", "azure"]
 ) -> set[str]:
     """Get all scanners supported by a provider.
-    
+
     Args:
         provider: Cloud provider
-        
+
     Returns:
         Set of supported scanner names
     """
@@ -96,7 +96,7 @@ def get_supported_scanners_for_provider(
 
 def get_all_supported_providers() -> list[str]:
     """Get all supported cloud providers.
-    
+
     Returns:
         List of provider names
     """

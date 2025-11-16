@@ -1,10 +1,8 @@
 """Tests for findings summarization functionality."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-import pytest
-
-from cs_kit.normalizer.ocsf_models import OCSFFinding, OCSFEnrichedFinding
+from cs_kit.normalizer.ocsf_models import OCSFEnrichedFinding, OCSFFinding
 from cs_kit.normalizer.summarize import (
     _extract_resource_type,
     by_framework,
@@ -28,19 +26,19 @@ class TestSeverityCounts:
         """Test basic severity counting."""
         findings = [
             OCSFFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 severity="high",
             ),
             OCSFFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 severity="medium",
             ),
             OCSFFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 severity="high",
@@ -56,13 +54,13 @@ class TestSeverityCounts:
         """Test severity counting with None values."""
         findings = [
             OCSFFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 severity="high",
             ),
             OCSFFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 severity=None,
@@ -86,19 +84,19 @@ class TestStatusCounts:
         """Test basic status counting."""
         findings = [
             OCSFFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 status="fail",
             ),
             OCSFFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 status="pass",
             ),
             OCSFFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 status="fail",
@@ -113,13 +111,13 @@ class TestStatusCounts:
         """Test status counting with None values."""
         findings = [
             OCSFFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 status="pass",
             ),
             OCSFFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 status=None,
@@ -138,17 +136,17 @@ class TestProviderCounts:
         """Test basic provider counting."""
         findings = [
             OCSFFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
             ),
             OCSFFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="gcp",
                 product="prowler",
             ),
             OCSFFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
             ),
@@ -166,17 +164,17 @@ class TestProductCounts:
         """Test basic product counting."""
         findings = [
             OCSFFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
             ),
             OCSFFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="scout",
             ),
             OCSFFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
             ),
@@ -194,21 +192,21 @@ class TestFrameworkScore:
         """Test basic framework scoring."""
         findings = [
             OCSFEnrichedFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 status="fail",
                 framework_refs=["cis_aws_1_4:CIS-1.3"],
             ),
             OCSFEnrichedFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 status="pass",
                 framework_refs=["cis_aws_1_4:CIS-1.4"],
             ),
             OCSFEnrichedFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 status="informational",
@@ -226,7 +224,7 @@ class TestFrameworkScore:
         """Test framework scoring with no matching findings."""
         findings = [
             OCSFEnrichedFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 status="fail",
@@ -252,7 +250,7 @@ class TestByProvider:
         """Test basic provider breakdown."""
         findings = [
             OCSFFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 severity="high",
@@ -261,7 +259,7 @@ class TestByProvider:
                 account_id="123456789012",
             ),
             OCSFFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="scout",
                 severity="medium",
@@ -270,7 +268,7 @@ class TestByProvider:
                 account_id="123456789012",
             ),
             OCSFFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="gcp",
                 product="prowler",
                 severity="low",
@@ -281,10 +279,10 @@ class TestByProvider:
         ]
 
         breakdown = by_provider(findings)
-        
+
         assert "aws" in breakdown
         assert "gcp" in breakdown
-        
+
         aws_data = breakdown["aws"]
         assert aws_data["total"] == 2
         assert aws_data["by_severity"]["high"] == 1
@@ -309,7 +307,7 @@ class TestByFramework:
         """Test basic framework breakdown."""
         findings = [
             OCSFEnrichedFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 severity="high",
@@ -317,7 +315,7 @@ class TestByFramework:
                 framework_refs=["cis_aws_1_4:CIS-1.3", "nist_csf:PR.AC-1"],
             ),
             OCSFEnrichedFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 severity="medium",
@@ -327,10 +325,10 @@ class TestByFramework:
         ]
 
         breakdown = by_framework(findings)
-        
+
         assert "cis_aws_1_4" in breakdown
         assert "nist_csf" in breakdown
-        
+
         cis_data = breakdown["cis_aws_1_4"]
         assert cis_data["total"] == 2  # First finding counted twice due to multiple refs
         assert cis_data["controls_count"] == 2
@@ -350,31 +348,31 @@ class TestRiskScoreDistribution:
         """Test basic risk score distribution."""
         findings = [
             OCSFEnrichedFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 risk_score=9.5,
             ),
             OCSFEnrichedFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 risk_score=7.2,
             ),
             OCSFEnrichedFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 risk_score=5.0,
             ),
             OCSFEnrichedFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 risk_score=2.1,
             ),
             OCSFEnrichedFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 risk_score=0.5,
@@ -393,13 +391,13 @@ class TestRiskScoreDistribution:
         """Test risk score distribution with unknown scores."""
         findings = [
             OCSFEnrichedFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 risk_score=None,
             ),
             OCSFEnrichedFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 # No risk_score attribute
@@ -415,9 +413,9 @@ class TestTimeRangeAnalysis:
 
     def test_time_range_analysis_basic(self) -> None:
         """Test basic time range analysis."""
-        time1 = datetime(2024, 1, 15, 10, 0, 0, tzinfo=timezone.utc)
-        time2 = datetime(2024, 1, 15, 11, 0, 0, tzinfo=timezone.utc)
-        time3 = datetime(2024, 1, 15, 12, 0, 0, tzinfo=timezone.utc)
+        time1 = datetime(2024, 1, 15, 10, 0, 0, tzinfo=UTC)
+        time2 = datetime(2024, 1, 15, 11, 0, 0, tzinfo=UTC)
+        time3 = datetime(2024, 1, 15, 12, 0, 0, tzinfo=UTC)
 
         findings = [
             OCSFFinding(
@@ -455,21 +453,21 @@ class TestUniqueResourceAnalysis:
         """Test basic unique resource analysis."""
         findings = [
             OCSFFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 resource_id="arn:aws:iam::123456789012:root",
                 account_id="123456789012",
             ),
             OCSFFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 resource_id="arn:aws:s3:::bucket",
                 account_id="123456789012",
             ),
             OCSFFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 resource_id="arn:aws:iam::123456789012:root",  # Duplicate
@@ -492,7 +490,7 @@ class TestGenerateFindingSummary:
         """Test basic finding summary generation."""
         findings = [
             OCSFEnrichedFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 severity="high",
@@ -502,7 +500,7 @@ class TestGenerateFindingSummary:
                 framework_refs=["cis_aws_1_4:CIS-1.3"],
             ),
             OCSFEnrichedFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="gcp",
                 product="prowler",
                 severity="medium",
@@ -514,7 +512,7 @@ class TestGenerateFindingSummary:
         ]
 
         summary = generate_finding_summary(findings)
-        
+
         assert summary.total_findings == 2
         assert summary.by_severity["high"] == 1
         assert summary.by_severity["medium"] == 1
@@ -531,7 +529,7 @@ class TestGenerateFindingSummary:
     def test_generate_finding_summary_empty(self) -> None:
         """Test finding summary generation with empty list."""
         summary = generate_finding_summary([])
-        
+
         assert summary.total_findings == 0
         assert summary.by_severity == {}
         assert summary.frameworks_covered == []

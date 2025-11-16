@@ -1,13 +1,11 @@
 """Compliance framework mapping functionality."""
 
-import os
 from pathlib import Path
-from typing import Any
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
 
-from cs_kit.normalizer.ocsf_models import OCSFFinding, OCSFEnrichedFinding
+from cs_kit.normalizer.ocsf_models import OCSFEnrichedFinding, OCSFFinding
 
 
 class MappingRule(BaseModel):
@@ -131,7 +129,7 @@ def load_mapping(map_id: str) -> ComplianceMapping:
         )
 
     try:
-        with open(mapping_file, "r", encoding="utf-8") as f:
+        with open(mapping_file, encoding="utf-8") as f:
             data = yaml.safe_load(f)
 
         if not isinstance(data, dict):
@@ -191,7 +189,7 @@ def apply_mapping(
         # Build source key for lookup
         if finding.check_id:
             source_key = f"{finding.product}:{finding.check_id}"
-            
+
             # Find matching controls
             if source_key in check_to_controls:
                 framework_refs = []
@@ -199,10 +197,10 @@ def apply_mapping(
                     framework_refs.append(
                         f"{control_info['framework']}:{control_info['control']}"
                     )
-                    
+
                     # Apply severity override if specified
                     if (
-                        control_info['severity_override'] 
+                        control_info['severity_override']
                         and not enriched_finding.severity
                     ):
                         enriched_finding.severity = control_info['severity_override']  # type: ignore
@@ -228,7 +226,7 @@ def get_framework_controls(map_id: str) -> dict[str, list[str]]:
         MappingLoadError: If mapping cannot be loaded
     """
     mapping = load_mapping(map_id)
-    
+
     controls_by_category = {}
     for category in mapping.categories:
         controls_by_category[category.name] = category.controls
@@ -256,7 +254,7 @@ def validate_mapping_file(mapping_file: Path) -> tuple[bool, list[str]]:
         return False, [f"File does not exist: {mapping_file}"]
 
     try:
-        with open(mapping_file, "r", encoding="utf-8") as f:
+        with open(mapping_file, encoding="utf-8") as f:
             data = yaml.safe_load(f)
 
         # Try to parse as ComplianceMapping

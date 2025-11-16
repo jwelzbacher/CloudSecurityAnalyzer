@@ -10,20 +10,19 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
-import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Optional
 from uuid import uuid4
 
 from cs_kit.cli.config import RunConfig
-from cs_kit.cli.main import _run_scan, console as cli_console  # type: ignore[attr-defined]
+from cs_kit.cli.main import _run_scan  # type: ignore[attr-defined]
+from cs_kit.cli.main import console as cli_console
 
 
 def generate_run_id() -> str:
     """Generate a unique run identifier."""
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     suffix = uuid4().hex[:8]
     return f"scan_{timestamp}_{suffix}"
 
@@ -64,12 +63,12 @@ async def execute_scan(
     with normalized_file.open("r", encoding="utf-8") as nf:
         normalized_data = json.load(nf)
 
-    summary_data: Optional[dict[str, object]] = None
+    summary_data: dict[str, object] | None = None
     if summary_file.exists():
         with summary_file.open("r", encoding="utf-8") as sf:
             summary_data = json.load(sf)
 
-    metadata: Optional[dict[str, object]] = None
+    metadata: dict[str, object] | None = None
     if metadata_file.exists():
         with metadata_file.open("r", encoding="utf-8") as mf:
             metadata = json.load(mf)

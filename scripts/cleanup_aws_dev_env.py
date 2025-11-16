@@ -15,7 +15,6 @@ Usage:
 
 import argparse
 import sys
-import time
 
 try:
     import boto3
@@ -343,7 +342,7 @@ def main():
     try:
         sts = boto3.client("sts", region_name=args.region)
         identity = sts.get_caller_identity()
-        print(f"✓ AWS credentials verified")
+        print("✓ AWS credentials verified")
         print(f"  Account: {identity.get('Account')}")
         print(f"  User/Role: {identity.get('Arn')}")
         print()

@@ -1,7 +1,7 @@
 """Tests for PDF rendering functionality."""
 
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -10,11 +10,11 @@ import pytest
 from cs_kit.cli.config import RendererConfig
 from cs_kit.normalizer.ocsf_models import FindingSummary, OCSFEnrichedFinding
 from cs_kit.render.pdf import (
-    _check_weasyprint,
     PDFGenerationError,
     RenderError,
     TemplateNotFoundError,
     _build_report_context,
+    _check_weasyprint,
     _prepare_render_context,
     _redact_sensitive_data,
     _safe_json_serialize,
@@ -51,13 +51,13 @@ class TestCreateJinjaEnvironment:
         """Test creating Jinja environment with custom template directory."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             custom_dir = Path(tmp_dir)
-            
+
             # Create a basic template
             (custom_dir / "test.html").write_text("<html>{{ test }}</html>")
-            
+
             env = create_jinja_environment(custom_dir)
             assert env is not None
-            
+
             template = env.get_template("test.html")
             result = template.render(test="hello")
             assert "hello" in result
@@ -65,10 +65,10 @@ class TestCreateJinjaEnvironment:
     def test_create_jinja_environment_nonexistent(self) -> None:
         """Test creating Jinja environment with nonexistent directory."""
         nonexistent_dir = Path("/nonexistent/templates")
-        
+
         with pytest.raises(TemplateNotFoundError) as exc_info:
             create_jinja_environment(nonexistent_dir)
-        
+
         assert "Template directory not found" in str(exc_info.value)
 
 
@@ -96,9 +96,9 @@ class TestRenderHtml:
             'tool_versions': {'prowler': '3.5.0'},
             'resource_analysis': {'resource_types': {}},
         }
-        
+
         config = RendererConfig(company_name="Test Company")
-        
+
         try:
             html = render_html(context, config)
             assert isinstance(html, str)
@@ -117,7 +117,7 @@ class TestRenderHtml:
             'findings_by_framework': {},
             'framework_scores': {},
         }
-        
+
         try:
             html = render_html(context)
             assert isinstance(html, str)
@@ -130,10 +130,10 @@ class TestRenderHtml:
         with tempfile.TemporaryDirectory() as tmp_dir:
             empty_dir = Path(tmp_dir) / "empty"
             empty_dir.mkdir()
-            
+
             config = RendererConfig(template_dir=str(empty_dir))
             context = {'summary': FindingSummary(total_findings=0)}
-            
+
             with pytest.raises(RenderError):
                 render_html(context, config)
 
@@ -145,13 +145,13 @@ class TestHtmlToPdf:
         """Test HTML to PDF conversion when WeasyPrint is unavailable."""
         if not _check_weasyprint():
             html = "<html><body>Test</body></html>"
-            
+
             with tempfile.TemporaryDirectory() as tmp_dir:
                 out_pdf = Path(tmp_dir) / "test.pdf"
-                
+
                 with pytest.raises(PDFGenerationError) as exc_info:
                     html_to_pdf(html, out_pdf)
-                
+
                 assert "WeasyPrint is not available" in str(exc_info.value)
         else:
             pytest.skip("WeasyPrint is available")
@@ -160,18 +160,18 @@ class TestHtmlToPdf:
         """Test basic HTML to PDF conversion with mocked WeasyPrint."""
         with patch('cs_kit.render.pdf._check_weasyprint', return_value=True), \
              patch('cs_kit.render.pdf.weasyprint') as mock_weasyprint:
-            
+
             # Mock WeasyPrint
             mock_html = MagicMock()
             mock_weasyprint.HTML.return_value = mock_html
-            
+
             html = "<html><body>Test</body></html>"
-            
+
             with tempfile.TemporaryDirectory() as tmp_dir:
                 out_pdf = Path(tmp_dir) / "test.pdf"
-                
+
                 html_to_pdf(html, out_pdf)
-                
+
                 mock_weasyprint.HTML.assert_called_once_with(string=html)
                 mock_html.write_pdf.assert_called_once_with(str(out_pdf))
 
@@ -179,25 +179,25 @@ class TestHtmlToPdf:
         """Test HTML to PDF conversion with custom CSS and mocked WeasyPrint."""
         with patch('cs_kit.render.pdf._check_weasyprint', return_value=True), \
              patch('cs_kit.render.pdf.weasyprint') as mock_weasyprint:
-            
+
             # Mock WeasyPrint
             mock_html = MagicMock()
             mock_css = MagicMock()
             mock_weasyprint.HTML.return_value = mock_html
             mock_weasyprint.CSS.return_value = mock_css
-            
+
             html = "<html><body>Test</body></html>"
-            
+
             with tempfile.TemporaryDirectory() as tmp_dir:
                 template_dir = Path(tmp_dir)
                 css_file = template_dir / "custom.css"
                 css_file.write_text("body { font-size: 12px; }")
-                
+
                 config = RendererConfig(template_dir=str(template_dir))
                 out_pdf = Path(tmp_dir) / "test.pdf"
-                
+
                 html_to_pdf(html, out_pdf, config)
-                
+
                 mock_weasyprint.CSS.assert_called_once()
                 mock_html.write_pdf.assert_called_once_with(str(out_pdf), stylesheets=[mock_css])
 
@@ -205,18 +205,18 @@ class TestHtmlToPdf:
         """Test HTML to PDF conversion error handling with mocked WeasyPrint."""
         with patch('cs_kit.render.pdf._check_weasyprint', return_value=True), \
              patch('cs_kit.render.pdf.weasyprint') as mock_weasyprint:
-            
+
             # Mock WeasyPrint to raise an exception
             mock_weasyprint.HTML.side_effect = Exception("PDF generation failed")
-            
+
             html = "<html><body>Test</body></html>"
-            
+
             with tempfile.TemporaryDirectory() as tmp_dir:
                 out_pdf = Path(tmp_dir) / "test.pdf"
-                
+
                 with pytest.raises(PDFGenerationError) as exc_info:
                     html_to_pdf(html, out_pdf)
-                
+
                 assert "Failed to generate PDF" in str(exc_info.value)
 
 
@@ -232,18 +232,18 @@ class TestGenerateReport:
         # Mock render functions
         mock_render_html.return_value = "<html>Test Report</html>"
         mock_html_to_pdf.return_value = None
-        
+
         # Create test data
         findings = [
             OCSFEnrichedFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 severity="high",
                 status="fail",
             )
         ]
-        
+
         summary = FindingSummary(
             total_findings=1,
             by_severity={'high': 1},
@@ -253,12 +253,12 @@ class TestGenerateReport:
             unique_resources=1,
             unique_accounts=1,
         )
-        
+
         with tempfile.TemporaryDirectory() as tmp_dir:
             out_pdf = Path(tmp_dir) / "report.pdf"
-            
+
             generate_report(findings, summary, out_pdf)
-            
+
             mock_render_html.assert_called_once()
             mock_html_to_pdf.assert_called_once()
 
@@ -270,9 +270,9 @@ class TestPrepareRenderContext:
         """Test basic context preparation."""
         base_context = {'test_key': 'test_value'}
         config = RendererConfig(company_name="Test Company", logo_path="/path/to/logo.png")
-        
+
         context = _prepare_render_context(base_context, config)
-        
+
         assert context['test_key'] == 'test_value'
         assert context['company_name'] == "Test Company"
         assert context['logo_path'] == "/path/to/logo.png"
@@ -286,9 +286,9 @@ class TestPrepareRenderContext:
             'assessment_date': '2024-01-15'
         }
         config = RendererConfig()
-        
+
         context = _prepare_render_context(base_context, config)
-        
+
         assert context['report_title'] == 'Custom Report Title'
         assert context['assessment_date'] == '2024-01-15'
 
@@ -300,7 +300,7 @@ class TestBuildReportContext:
         """Test basic report context building."""
         findings = [
             OCSFEnrichedFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 framework_refs=["cis_aws_1_4:CIS-1.3"],
@@ -308,7 +308,7 @@ class TestBuildReportContext:
                 account_id="123456789012",
             )
         ]
-        
+
         summary = FindingSummary(
             total_findings=1,
             frameworks_covered=["cis_aws_1_4"],
@@ -316,11 +316,11 @@ class TestBuildReportContext:
             unique_resources=1,
             unique_accounts=1,
         )
-        
+
         config = RendererConfig()
-        
+
         context = _build_report_context(findings, summary, config)
-        
+
         assert 'findings' in context
         assert 'summary' in context
         assert 'provider_breakdowns' in context
@@ -334,18 +334,18 @@ class TestBuildReportContext:
         """Test report context building with raw data inclusion."""
         findings = [
             OCSFEnrichedFinding(
-                time=datetime.now(timezone.utc),
+                time=datetime.now(UTC),
                 provider="aws",
                 product="prowler",
                 raw={"account_id": "123456789012", "test": "data"},
             )
         ]
-        
+
         summary = FindingSummary(total_findings=1)
         config = RendererConfig(include_raw_data=True)
-        
+
         context = _build_report_context(findings, summary, config)
-        
+
         assert 'raw_sample_data' in context
         assert context['raw_sample_data'] is not None
         # Should be redacted (account_id should be masked)
@@ -363,9 +363,9 @@ class TestRedactSensitiveData:
             "safe_field": "safe_value",
             "email": "user@example.com",
         }
-        
+
         redacted = _redact_sensitive_data(data)
-        
+
         assert redacted["account_id"] == "12********12"
         assert redacted["safe_field"] == "safe_value"
         assert redacted["email"] == "us************om"
@@ -381,9 +381,9 @@ class TestRedactSensitiveData:
                 {"account_id": "987654321098", "safe": "value"}
             ]
         }
-        
+
         redacted = _redact_sensitive_data(data)
-        
+
         assert redacted["cloud"]["provider"] == "aws"
         # The "account" key itself triggers redaction, so the whole dict becomes a string
         assert redacted["cloud"]["account"] == "***REDACTED***"
@@ -407,7 +407,7 @@ class TestSafeJsonSerialize:
 
     def test_safe_json_serialize_with_datetime(self) -> None:
         """Test JSON serialization with datetime objects."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         data = {"timestamp": now}
         result = _safe_json_serialize(data)
         assert now.isoformat() in result
@@ -415,7 +415,7 @@ class TestSafeJsonSerialize:
     def test_safe_json_serialize_with_pydantic(self) -> None:
         """Test JSON serialization with Pydantic models."""
         finding = OCSFEnrichedFinding(
-            time=datetime.now(timezone.utc),
+            time=datetime.now(UTC),
             provider="aws",
             product="prowler",
         )
@@ -427,11 +427,11 @@ class TestSafeJsonSerialize:
         class UnserializableObject:
             def __str__(self) -> str:
                 return "unserializable"
-            
+
             def __dict__(self) -> dict:
                 # This will be called by the serializer
                 return {}
-        
+
         data = {"obj": UnserializableObject()}
         result = _safe_json_serialize(data)
         # The object has __dict__ so it will be serialized as empty dict
@@ -459,7 +459,7 @@ class TestValidateTemplateDirectory:
         """Test validation of invalid template directory."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             empty_dir = Path(tmp_dir)
-            
+
             is_valid, missing = validate_template_directory(empty_dir)
             assert not is_valid
             assert len(missing) > 0
@@ -468,7 +468,7 @@ class TestValidateTemplateDirectory:
     def test_validate_template_directory_nonexistent(self) -> None:
         """Test validation of nonexistent template directory."""
         nonexistent_dir = Path("/nonexistent/templates")
-        
+
         is_valid, errors = validate_template_directory(nonexistent_dir)
         assert not is_valid
         assert len(errors) == 1

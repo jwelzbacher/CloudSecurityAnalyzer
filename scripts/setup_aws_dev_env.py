@@ -13,14 +13,11 @@ Usage:
 """
 
 import argparse
-import json
 import sys
-import time
-from typing import Any
 
 try:
     import boto3
-    from botocore.exceptions import ClientError, BotoCoreError
+    from botocore.exceptions import ClientError
 except ImportError:
     print("ERROR: boto3 is required. Install it with: pip install boto3")
     sys.exit(1)
@@ -168,7 +165,7 @@ class AWSDevEnvironmentSetup:
             self.ec2.attach_internet_gateway(
                 InternetGatewayId=self.igw_id, VpcId=self.vpc_id
             )
-            print(f"✓ Attached IGW to VPC")
+            print("✓ Attached IGW to VPC")
 
             return self.igw_id
         except ClientError as e:
@@ -583,7 +580,7 @@ echo "Web server setup completed at $(date)" >> /var/log/user-data.log
         print("AWS Development Environment Setup Complete!")
         print("=" * 60)
         print(f"\nRegion: {self.region}")
-        print(f"\nCreated Resources:")
+        print("\nCreated Resources:")
         print(f"  VPC: {self.vpc_id}")
         print(f"  Public Subnet: {self.public_subnet_id}")
         print(f"  Private Subnet: {self.private_subnet_id}")
@@ -594,7 +591,7 @@ echo "Web server setup completed at $(date)" >> /var/log/user-data.log
 
         ips = self.get_instance_public_ips()
         if ips:
-            print(f"\nInstance Public IPs:")
+            print("\nInstance Public IPs:")
             for instance_id, ip in ips.items():
                 instance_name = [
                     tag["Value"]
@@ -679,7 +676,7 @@ def main():
     try:
         sts = boto3.client("sts", region_name=args.region)
         identity = sts.get_caller_identity()
-        print(f"✓ AWS credentials verified")
+        print("✓ AWS credentials verified")
         print(f"  Account: {identity.get('Account')}")
         print(f"  User/Role: {identity.get('Arn')}")
         print()

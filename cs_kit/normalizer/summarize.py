@@ -4,7 +4,11 @@ from collections import Counter, defaultdict
 from datetime import datetime
 from typing import Any
 
-from cs_kit.normalizer.ocsf_models import FindingSummary, OCSFFinding, OCSFEnrichedFinding
+from cs_kit.normalizer.ocsf_models import (
+    FindingSummary,
+    OCSFEnrichedFinding,
+    OCSFFinding,
+)
 
 
 def severity_counts(findings: list[OCSFFinding | OCSFEnrichedFinding]) -> dict[str, int]:
@@ -17,11 +21,11 @@ def severity_counts(findings: list[OCSFFinding | OCSFEnrichedFinding]) -> dict[s
         Dictionary mapping severity levels to counts
     """
     severity_counter = Counter()
-    
+
     for finding in findings:
         severity = finding.severity or "unknown"
         severity_counter[severity] += 1
-    
+
     return dict(severity_counter)
 
 
@@ -35,11 +39,11 @@ def status_counts(findings: list[OCSFFinding | OCSFEnrichedFinding]) -> dict[str
         Dictionary mapping status values to counts
     """
     status_counter = Counter()
-    
+
     for finding in findings:
         status = finding.status or "unknown"
         status_counter[status] += 1
-    
+
     return dict(status_counter)
 
 
@@ -53,10 +57,10 @@ def provider_counts(findings: list[OCSFFinding | OCSFEnrichedFinding]) -> dict[s
         Dictionary mapping providers to counts
     """
     provider_counter = Counter()
-    
+
     for finding in findings:
         provider_counter[finding.provider] += 1
-    
+
     return dict(provider_counter)
 
 
@@ -70,10 +74,10 @@ def product_counts(findings: list[OCSFFinding | OCSFEnrichedFinding]) -> dict[st
         Dictionary mapping products to counts
     """
     product_counter = Counter()
-    
+
     for finding in findings:
         product_counter[finding.product] += 1
-    
+
     return dict(product_counter)
 
 
@@ -90,7 +94,7 @@ def framework_score(
         Dictionary with pass/fail/warn counts for the framework
     """
     framework_findings = []
-    
+
     # Filter findings that belong to the specified framework
     for finding in findings:
         if hasattr(finding, 'framework_refs') and finding.framework_refs:
@@ -98,13 +102,13 @@ def framework_score(
                 if ref.startswith(framework_prefix + ":"):
                     framework_findings.append(finding)
                     break
-    
+
     # Count by status
     status_counter = Counter()
     for finding in framework_findings:
         status = finding.status or "unknown"
         status_counter[status] += 1
-    
+
     return {
         "pass": status_counter.get("pass", 0),
         "fail": status_counter.get("fail", 0),
@@ -131,21 +135,21 @@ def by_provider(findings: list[OCSFFinding | OCSFEnrichedFinding]) -> dict[str, 
         "unique_resources": set(),
         "unique_accounts": set(),
     })
-    
+
     for finding in findings:
         provider = finding.provider
         data = provider_data[provider]
-        
+
         data["total"] += 1
         data["by_severity"][finding.severity or "unknown"] += 1
         data["by_status"][finding.status or "unknown"] += 1
         data["by_product"][finding.product] += 1
-        
+
         if finding.resource_id:
             data["unique_resources"].add(finding.resource_id)
         if finding.account_id:
             data["unique_accounts"].add(finding.account_id)
-    
+
     # Convert sets to counts and defaultdicts to regular dicts
     result = {}
     for provider, data in provider_data.items():
@@ -157,7 +161,7 @@ def by_provider(findings: list[OCSFFinding | OCSFEnrichedFinding]) -> dict[str, 
             "unique_resources": len(data["unique_resources"]),
             "unique_accounts": len(data["unique_accounts"]),
         }
-    
+
     return result
 
 
@@ -177,20 +181,20 @@ def by_framework(findings: list[OCSFEnrichedFinding]) -> dict[str, dict[str, Any
         "controls": set(),
         "findings": [],
     })
-    
+
     for finding in findings:
         if hasattr(finding, 'framework_refs') and finding.framework_refs:
             for ref in finding.framework_refs:
                 if ":" in ref:
                     framework, control = ref.split(":", 1)
                     data = framework_data[framework]
-                    
+
                     data["total"] += 1
                     data["by_severity"][finding.severity or "unknown"] += 1
                     data["by_status"][finding.status or "unknown"] += 1
                     data["controls"].add(control)
                     data["findings"].append(finding)
-    
+
     # Convert sets to counts and defaultdicts to regular dicts
     result = {}
     for framework, data in framework_data.items():
@@ -202,7 +206,7 @@ def by_framework(findings: list[OCSFEnrichedFinding]) -> dict[str, dict[str, Any
             "controls": sorted(data["controls"]),
             "findings": data["findings"],
         }
-    
+
     return result
 
 
@@ -223,7 +227,7 @@ def risk_score_distribution(findings: list[OCSFEnrichedFinding]) -> dict[str, in
         "info (0-0.9)": 0,
         "unknown": 0,
     }
-    
+
     for finding in findings:
         if hasattr(finding, 'risk_score') and finding.risk_score is not None:
             score = finding.risk_score
@@ -241,7 +245,7 @@ def risk_score_distribution(findings: list[OCSFEnrichedFinding]) -> dict[str, in
                 score_ranges["unknown"] += 1
         else:
             score_ranges["unknown"] += 1
-    
+
     return score_ranges
 
 
@@ -256,12 +260,12 @@ def time_range_analysis(findings: list[OCSFFinding | OCSFEnrichedFinding]) -> di
     """
     if not findings:
         return {"start": None, "end": None}
-    
+
     timestamps = [finding.time for finding in findings if finding.time]
-    
+
     if not timestamps:
         return {"start": None, "end": None}
-    
+
     return {
         "start": min(timestamps),
         "end": max(timestamps),
@@ -280,19 +284,19 @@ def unique_resource_analysis(findings: list[OCSFFinding | OCSFEnrichedFinding]) 
     unique_resources = set()
     unique_accounts = set()
     resource_types = defaultdict(int)
-    
+
     for finding in findings:
         if finding.resource_id:
             unique_resources.add(finding.resource_id)
-            
+
             # Try to extract resource type from ARN or other identifiers
             resource_type = _extract_resource_type(finding.resource_id)
             if resource_type:
                 resource_types[resource_type] += 1
-        
+
         if finding.account_id:
             unique_accounts.add(finding.account_id)
-    
+
     return {
         "unique_resources": len(unique_resources),
         "unique_accounts": len(unique_accounts),
@@ -323,13 +327,13 @@ def generate_finding_summary(
                         framework = ref.split(":", 1)[0]
                         framework_refs.add(framework)
         frameworks_covered = sorted(framework_refs)
-    
+
     # Analyze time range
     time_range = time_range_analysis(findings)
-    
+
     # Analyze unique resources
     resource_analysis = unique_resource_analysis(findings)
-    
+
     return FindingSummary(
         total_findings=len(findings),
         by_severity=severity_counts(findings),
@@ -357,14 +361,14 @@ def _extract_resource_type(resource_id: str) -> str | None:
         parts = resource_id.split(":")
         if len(parts) >= 3:
             return parts[2]  # Service name
-    
+
     # Handle GCP resource names
     if "googleapis.com" in resource_id:
         # Extract service from URL-like resource names
         if "//" in resource_id:
             service_part = resource_id.split("//")[1].split(".")[0]
             return service_part
-    
+
     # Handle Azure resource IDs
     if resource_id.startswith("/subscriptions/"):
         parts = resource_id.split("/")
@@ -376,5 +380,5 @@ def _extract_resource_type(resource_id: str) -> str | None:
                     resource_type = parts[provider_idx + 2]
                     return f"{provider}/{resource_type}"
                 return provider
-    
+
     return None

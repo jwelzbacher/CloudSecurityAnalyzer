@@ -19,7 +19,7 @@ class TestRunConfig:
             scanners={"prowler": True},
             redact_ids=True,
         )
-        
+
         assert config.provider == "aws"
         assert config.frameworks == ["cis_aws_1_4", "nist_csf"]
         assert config.regions == ["us-east-1", "us-west-2"]
@@ -33,7 +33,7 @@ class TestRunConfig:
             provider="gcp",
             artifacts_dir="/tmp/artifacts",
         )
-        
+
         assert config.provider == "gcp"
         assert config.frameworks == []
         assert config.regions == []
@@ -48,7 +48,7 @@ class TestRunConfig:
                 provider="invalid",  # type: ignore
                 artifacts_dir="/tmp/artifacts",
             )
-        
+
         errors = exc_info.value.errors()
         assert len(errors) == 1
         assert errors[0]["type"] == "literal_error"
@@ -58,10 +58,10 @@ class TestRunConfig:
         """Test validation error for missing required fields."""
         with pytest.raises(ValidationError) as exc_info:
             RunConfig()  # type: ignore
-        
+
         errors = exc_info.value.errors()
         assert len(errors) == 2  # provider and artifacts_dir are required
-        
+
         missing_fields = {error["loc"][0] for error in errors}
         assert missing_fields == {"provider", "artifacts_dir"}
 
@@ -73,7 +73,7 @@ class TestRunConfig:
                 artifacts_dir="/tmp/artifacts",
                 extra_field="not_allowed",  # type: ignore
             )
-        
+
         errors = exc_info.value.errors()
         assert len(errors) == 1
         assert errors[0]["type"] == "extra_forbidden"
@@ -94,7 +94,7 @@ class TestRendererConfig:
     def test_default_config(self) -> None:
         """Test creating a configuration with all defaults."""
         config = RendererConfig()
-        
+
         assert config.template_dir is None
         assert config.logo_path is None
         assert config.company_name == "Security Assessment"
@@ -108,7 +108,7 @@ class TestRendererConfig:
             company_name="ACME Corp",
             include_raw_data=True,
         )
-        
+
         assert config.template_dir == "/custom/templates"
         assert config.logo_path == "/path/to/logo.png"
         assert config.company_name == "ACME Corp"
@@ -120,7 +120,7 @@ class TestRendererConfig:
             company_name="Test Company",
             include_raw_data=True,
         )
-        
+
         assert config.template_dir is None
         assert config.logo_path is None
         assert config.company_name == "Test Company"
@@ -132,7 +132,7 @@ class TestRendererConfig:
             RendererConfig(
                 extra_field="not_allowed",  # type: ignore
             )
-        
+
         errors = exc_info.value.errors()
         assert len(errors) == 1
         assert errors[0]["type"] == "extra_forbidden"

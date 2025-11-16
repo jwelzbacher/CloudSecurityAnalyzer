@@ -7,7 +7,6 @@ from cs_kit.cli.tool_registry import (
     PROVIDER_SUPPORT,
     SUPPORTED_SCANNERS,
     UnknownScannerError,
-    UnsupportedScannerError,
     get_all_supported_providers,
     get_supported_scanners_for_provider,
     select_scanners,
@@ -21,7 +20,7 @@ class TestValidateScannerSupport:
     def test_valid_scanner_provider_combinations(self) -> None:
         """Test valid scanner-provider combinations."""
         # All current combinations should be valid
-        for provider, scanners in PROVIDER_SUPPORT.items():
+        for _provider, scanners in PROVIDER_SUPPORT.items():
             for scanner in scanners:
                 # Should not raise any exception
                 validate_scanner_support(provider, scanner)  # type: ignore
@@ -30,7 +29,7 @@ class TestValidateScannerSupport:
         """Test validation with unknown scanner."""
         with pytest.raises(UnknownScannerError) as exc_info:
             validate_scanner_support("aws", "unknown_scanner")
-        
+
         assert exc_info.value.scanner == "unknown_scanner"
         assert "unknown_scanner" in str(exc_info.value)
 
@@ -38,7 +37,7 @@ class TestValidateScannerSupport:
         """Test validation when scanner doesn't support provider."""
         # This test assumes we might add scanners that don't support all providers
         # For now, prowler supports all providers, so we'll test with a hypothetical case
-        
+
         # First, let's verify current state - prowler supports all providers
         for provider in PROVIDER_SUPPORT:
             validate_scanner_support(provider, "prowler")  # type: ignore
@@ -60,7 +59,7 @@ class TestSelectScanners:
             artifacts_dir="/tmp",
             scanners={"prowler": True},
         )
-        
+
         selected = select_scanners(config)
         assert selected == ["prowler"]
 
@@ -71,7 +70,7 @@ class TestSelectScanners:
             artifacts_dir="/tmp",
             scanners={"prowler": False},
         )
-        
+
         selected = select_scanners(config)
         assert selected == []
 
@@ -82,7 +81,7 @@ class TestSelectScanners:
             artifacts_dir="/tmp",
             scanners={"prowler": True, "other_scanner": False},
         )
-        
+
         # Should only return enabled scanners that exist
         # Since "other_scanner" doesn't exist, it should raise an error
         # But since it's disabled, it shouldn't be checked
@@ -96,10 +95,10 @@ class TestSelectScanners:
             artifacts_dir="/tmp",
             scanners={"unknown_scanner": True},
         )
-        
+
         with pytest.raises(UnknownScannerError) as exc_info:
             select_scanners(config)
-        
+
         assert exc_info.value.scanner == "unknown_scanner"
 
     @pytest.mark.parametrize("provider", ["aws", "gcp", "azure"])
@@ -110,7 +109,7 @@ class TestSelectScanners:
             artifacts_dir="/tmp",
             scanners={"prowler": True},
         )
-        
+
         selected = select_scanners(config)
         assert selected == ["prowler"]
 
@@ -121,7 +120,7 @@ class TestSelectScanners:
             artifacts_dir="/tmp",
             scanners={},
         )
-        
+
         selected = select_scanners(config)
         assert selected == []
 
@@ -135,7 +134,7 @@ class TestSelectScanners:
                 "disabled_scanner": False,
             },
         )
-        
+
         selected = select_scanners(config)
         assert selected == ["prowler"]
 
@@ -165,11 +164,11 @@ class TestGetSupportedScannersForProvider:
         """Test that function returns a copy, not the original set."""
         scanners1 = get_supported_scanners_for_provider("aws")
         scanners2 = get_supported_scanners_for_provider("aws")
-        
+
         # Should be equal but not the same object
         assert scanners1 == scanners2
         assert scanners1 is not scanners2
-        
+
         # Modifying one shouldn't affect the other
         scanners1.add("test_scanner")
         assert "test_scanner" not in scanners2
@@ -187,7 +186,7 @@ class TestGetAllSupportedProviders:
     def test_returns_all_providers(self) -> None:
         """Test that all known providers are returned."""
         providers = get_all_supported_providers()
-        
+
         expected_providers = {"aws", "gcp", "azure"}
         assert set(providers) == expected_providers
 
@@ -213,15 +212,15 @@ class TestConstants:
     def test_provider_support_not_empty(self) -> None:
         """Test that PROVIDER_SUPPORT is not empty."""
         assert len(PROVIDER_SUPPORT) > 0
-        
+
         # All providers should have at least one scanner
-        for provider, scanners in PROVIDER_SUPPORT.items():
+        for _provider, scanners in PROVIDER_SUPPORT.items():
             assert len(scanners) > 0
             assert "prowler" in scanners
 
     def test_provider_support_scanners_exist(self) -> None:
         """Test that all scanners in PROVIDER_SUPPORT exist in SUPPORTED_SCANNERS."""
-        for provider, scanners in PROVIDER_SUPPORT.items():
+        for _provider, scanners in PROVIDER_SUPPORT.items():
             for scanner in scanners:
                 assert scanner in SUPPORTED_SCANNERS, (
                     f"Scanner {scanner} for provider {provider} "

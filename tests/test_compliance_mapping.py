@@ -1,7 +1,7 @@
 """Tests for compliance mapping functionality."""
 
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -137,7 +137,7 @@ class TestListAvailableMappings:
         """Test listing available mappings."""
         mappings = list_available_mappings()
         assert isinstance(mappings, list)
-        
+
         # Should include our test mappings if they exist
         expected_mappings = ["cis_aws_1_4", "nist_csf"]
         for expected in expected_mappings:
@@ -159,7 +159,7 @@ class TestApplyMapping:
         """Test applying a single mapping to findings."""
         # Create test finding
         finding = OCSFFinding(
-            time=datetime.now(timezone.utc),
+            time=datetime.now(UTC),
             provider="aws",
             product="prowler",
             check_id="aws_iam_avoid_root_usage",
@@ -171,7 +171,7 @@ class TestApplyMapping:
         try:
             enriched_findings = apply_mapping([finding], ["cis_aws_1_4"])
             assert len(enriched_findings) == 1
-            
+
             enriched = enriched_findings[0]
             assert len(enriched.framework_refs) > 0
             assert any("cis_aws_1_4" in ref for ref in enriched.framework_refs)
@@ -181,7 +181,7 @@ class TestApplyMapping:
     def test_apply_multiple_mappings(self) -> None:
         """Test applying multiple mappings to findings."""
         finding = OCSFFinding(
-            time=datetime.now(timezone.utc),
+            time=datetime.now(UTC),
             provider="aws",
             product="prowler",
             check_id="aws_iam_avoid_root_usage",
@@ -191,7 +191,7 @@ class TestApplyMapping:
         try:
             enriched_findings = apply_mapping([finding], ["cis_aws_1_4", "nist_csf"])
             assert len(enriched_findings) == 1
-            
+
             enriched = enriched_findings[0]
             # Should have references from both frameworks
             framework_names = {ref.split(":")[0] for ref in enriched.framework_refs}
@@ -203,7 +203,7 @@ class TestApplyMapping:
     def test_apply_mapping_no_matches(self) -> None:
         """Test applying mapping with no matching rules."""
         finding = OCSFFinding(
-            time=datetime.now(timezone.utc),
+            time=datetime.now(UTC),
             provider="aws",
             product="prowler",
             check_id="nonexistent_check",
@@ -213,7 +213,7 @@ class TestApplyMapping:
         try:
             enriched_findings = apply_mapping([finding], ["cis_aws_1_4"])
             assert len(enriched_findings) == 1
-            
+
             enriched = enriched_findings[0]
             assert len(enriched.framework_refs) == 0
         except MappingNotFoundError:
@@ -230,7 +230,7 @@ class TestApplyMapping:
     def test_apply_mapping_empty_map_ids(self) -> None:
         """Test applying empty mapping list."""
         finding = OCSFFinding(
-            time=datetime.now(timezone.utc),
+            time=datetime.now(UTC),
             provider="aws",
             product="prowler",
             check_id="aws_iam_avoid_root_usage",
@@ -243,7 +243,7 @@ class TestApplyMapping:
     def test_apply_mapping_nonexistent_mapping(self) -> None:
         """Test applying nonexistent mapping."""
         finding = OCSFFinding(
-            time=datetime.now(timezone.utc),
+            time=datetime.now(UTC),
             provider="aws",
             product="prowler",
         )
@@ -255,7 +255,7 @@ class TestApplyMapping:
         """Test that mapping can override severity."""
         # Create finding without severity
         finding = OCSFFinding(
-            time=datetime.now(timezone.utc),
+            time=datetime.now(UTC),
             provider="aws",
             product="prowler",
             check_id="aws_iam_avoid_root_usage",
@@ -265,7 +265,7 @@ class TestApplyMapping:
         try:
             enriched_findings = apply_mapping([finding], ["cis_aws_1_4"])
             enriched = enriched_findings[0]
-            
+
             # Should have severity from mapping rule
             assert enriched.severity is not None
         except MappingNotFoundError:
@@ -281,7 +281,7 @@ class TestGetFrameworkControls:
             controls = get_framework_controls("cis_aws_1_4")
             assert isinstance(controls, dict)
             assert len(controls) > 0
-            
+
             # Should have category names as keys
             for category_name, control_list in controls.items():
                 assert isinstance(category_name, str)
@@ -312,7 +312,7 @@ class TestValidateMappingFile:
         """Test validating nonexistent file."""
         nonexistent_file = Path("/nonexistent/file.yaml")
         is_valid, errors = validate_mapping_file(nonexistent_file)
-        
+
         assert not is_valid
         assert len(errors) == 1
         assert "does not exist" in errors[0]
@@ -356,6 +356,6 @@ class TestGetMappingsDirectory:
         mappings_dir = get_mappings_directory()
         assert isinstance(mappings_dir, Path)
         assert mappings_dir.name == "mappings"
-        
+
         # Should be relative to the cs_kit package
         assert "cs_kit" in str(mappings_dir)

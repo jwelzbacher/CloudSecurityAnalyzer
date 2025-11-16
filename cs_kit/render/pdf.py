@@ -1,7 +1,6 @@
 """PDF rendering functionality using Jinja2 templates and WeasyPrint."""
 
-import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -15,24 +14,24 @@ WEASYPRINT_AVAILABLE = None
 def _check_weasyprint() -> bool:
     """Check if WeasyPrint is available and can be imported."""
     global weasyprint, WEASYPRINT_AVAILABLE
-    
+
     if WEASYPRINT_AVAILABLE is not None:
         return WEASYPRINT_AVAILABLE
-    
+
     try:
         import weasyprint as wp
         weasyprint = wp
         WEASYPRINT_AVAILABLE = True
         return True
-    except (ImportError, OSError) as e:
+    except (ImportError, OSError):
         # OSError is raised when system dependencies are missing
         weasyprint = None
         WEASYPRINT_AVAILABLE = False
         return False
 
-from cs_kit.cli.config import RendererConfig
-from cs_kit.normalizer.ocsf_models import FindingSummary, OCSFEnrichedFinding
-from cs_kit.normalizer.summarize import (
+from cs_kit.cli.config import RendererConfig  # noqa: E402
+from cs_kit.normalizer.ocsf_models import FindingSummary, OCSFEnrichedFinding  # noqa: E402
+from cs_kit.normalizer.summarize import (  # noqa: E402
     by_framework,
     by_provider,
     framework_score,
@@ -93,7 +92,7 @@ def create_jinja_environment(template_dir: Path | None = None) -> Environment:
 
     # Add custom filters
     env.filters['tojson'] = lambda obj, indent=None: _safe_json_serialize(obj, indent)
-    
+
     return env
 
 
@@ -121,29 +120,29 @@ def render_html(context: dict[str, Any], config: RendererConfig | None = None) -
 
     try:
         env = create_jinja_environment(template_dir)
-        
+
         # Prepare context with renderer config
         render_context = _prepare_render_context(context, config)
-        
+
         # Render each section
         sections = []
-        
+
         # Cover page
         cover_template = env.get_template('cover.html')
         sections.append(cover_template.render(**render_context))
-        
+
         # Executive summary
         exec_template = env.get_template('exec_summary.html')
         sections.append(exec_template.render(**render_context))
-        
+
         # Detailed findings
         findings_template = env.get_template('findings.html')
         sections.append(findings_template.render(**render_context))
-        
+
         # Appendix
         appendix_template = env.get_template('appendix.html')
         sections.append(appendix_template.render(**render_context))
-        
+
         # Combine all sections
         return '\n'.join(sections)
 
@@ -167,14 +166,14 @@ def html_to_pdf(html: str, out_pdf: Path, config: RendererConfig | None = None) 
             "WeasyPrint is not available. Please install system dependencies. "
             "See: https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#installation"
         )
-    
+
     if config is None:
         config = RendererConfig()
 
     try:
         # Create output directory if it doesn't exist
         out_pdf.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # Configure WeasyPrint
         css_string = None
         if config.template_dir:
@@ -184,7 +183,7 @@ def html_to_pdf(html: str, out_pdf: Path, config: RendererConfig | None = None) 
 
         # Generate PDF
         document = weasyprint.HTML(string=html)
-        
+
         if css_string:
             css = weasyprint.CSS(string=css_string)
             document.write_pdf(str(out_pdf), stylesheets=[css])
@@ -221,10 +220,10 @@ def generate_report(
     try:
         # Prepare comprehensive context
         context = _build_report_context(findings, summary, config, **kwargs)
-        
+
         # Render HTML
         html = render_html(context, config)
-        
+
         # Generate PDF
         html_to_pdf(html, out_pdf, config)
 
@@ -245,19 +244,19 @@ def _prepare_render_context(
         Enhanced context dictionary
     """
     render_context = context.copy()
-    
+
     # Add configuration values
     render_context.update({
         'company_name': config.company_name,
         'logo_path': config.logo_path,
         'include_raw_data': config.include_raw_data,
-        'current_date': datetime.now(timezone.utc).strftime('%Y-%m-%d'),
+        'current_date': datetime.now(UTC).strftime('%Y-%m-%d'),
     })
-    
+
     # Set default values
     render_context.setdefault('report_title', 'Security Assessment Report')
     render_context.setdefault('assessment_date', render_context['current_date'])
-    
+
     return render_context
 
 
@@ -282,24 +281,24 @@ def _build_report_context(
     provider_breakdowns = by_provider(findings)
     findings_by_framework = by_framework(findings)
     resource_analysis = unique_resource_analysis(findings)
-    
+
     # Calculate framework scores
     framework_scores = {}
     for framework in summary.frameworks_covered:
         framework_scores[framework] = framework_score(findings, framework)
-    
+
     # Prepare tool versions (would be populated from actual scan metadata)
     tool_versions = {}
     for product in summary.by_product.keys():
         tool_versions[product] = kwargs.get(f'{product}_version', 'Unknown')
-    
+
     # Prepare sample raw data if requested
     raw_sample_data = None
     if config.include_raw_data and findings:
         # Take first finding as sample, with sensitive data redacted
         sample_finding = findings[0]
         raw_sample_data = _redact_sensitive_data(sample_finding.raw)
-    
+
     # Build complete context
     context = {
         'findings': findings,
@@ -312,7 +311,7 @@ def _build_report_context(
         'raw_sample_data': raw_sample_data,
         **kwargs  # Include any additional context provided
     }
-    
+
     return context
 
 
@@ -327,17 +326,17 @@ def _redact_sensitive_data(data: dict[str, Any]) -> dict[str, Any]:
     """
     if not isinstance(data, dict):
         return data
-    
+
     redacted = {}
     sensitive_keys = {
         'account_id', 'account', 'subscription_id', 'project_id',
         'resource_id', 'arn', 'id', 'uid', 'email', 'phone',
         'ip_address', 'private_ip', 'public_ip'
     }
-    
+
     for key, value in data.items():
         key_lower = key.lower()
-        
+
         if any(key_lower == sensitive_key or key_lower.endswith('_' + sensitive_key) for sensitive_key in sensitive_keys):
             if isinstance(value, str) and len(value) > 4:
                 # Redact middle part of string, keep first and last 2 chars
@@ -350,7 +349,7 @@ def _redact_sensitive_data(data: dict[str, Any]) -> dict[str, Any]:
             redacted[key] = [_redact_sensitive_data(item) if isinstance(item, dict) else item for item in value]
         else:
             redacted[key] = value
-    
+
     return redacted
 
 
@@ -366,7 +365,7 @@ def _safe_json_serialize(obj: Any, indent: int | None = None) -> str:
     """
     import json
     from datetime import datetime
-    
+
     def json_serializer(obj: Any) -> Any:
         if isinstance(obj, datetime):
             return obj.isoformat()
@@ -376,7 +375,7 @@ def _safe_json_serialize(obj: Any, indent: int | None = None) -> str:
             return obj.__dict__
         else:
             return str(obj)
-    
+
     try:
         return json.dumps(obj, default=json_serializer, indent=indent)
     except Exception:
@@ -394,13 +393,13 @@ def validate_template_directory(template_dir: Path) -> tuple[bool, list[str]]:
     """
     required_templates = ['base.html', 'cover.html', 'exec_summary.html', 'findings.html', 'appendix.html']
     missing_templates = []
-    
+
     if not template_dir.exists():
         return False, [f"Template directory does not exist: {template_dir}"]
-    
+
     for template in required_templates:
         template_path = template_dir / template
         if not template_path.exists():
             missing_templates.append(template)
-    
+
     return len(missing_templates) == 0, missing_templates

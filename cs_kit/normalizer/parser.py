@@ -1,7 +1,7 @@
 """OCSF data parsing and normalization."""
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Literal
 
@@ -30,10 +30,12 @@ def parse_ocsf(
         raise FileNotFoundError(f"OCSF file not found: {path}")
 
     try:
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             data = json.load(f)
     except json.JSONDecodeError as e:
-        raise json.JSONDecodeError(f"Invalid JSON in {path}: {e.msg}", e.doc, e.pos)
+        raise json.JSONDecodeError(
+            f"Invalid JSON in {path}: {e.msg}", e.doc, e.pos
+        ) from e
 
     # Handle both single objects and arrays
     if isinstance(data, dict):
@@ -79,11 +81,11 @@ def _parse_single_finding(
                 time = datetime.fromisoformat(time_str.replace("Z", "+00:00"))
             except ValueError:
                 # Fallback to current time if parsing fails
-                time = datetime.now(timezone.utc)
+                time = datetime.now(UTC)
         else:
-            time = datetime.now(timezone.utc)
+            time = datetime.now(UTC)
     else:
-        time = datetime.now(timezone.utc)
+        time = datetime.now(UTC)
 
     # Extract basic OCSF fields
     class_uid = raw_finding.get("class_uid")
@@ -206,7 +208,7 @@ def _extract_resource_id(raw_finding: dict[str, Any]) -> str | None:
             return str(first_resource["uid"])
         if "name" in first_resource:
             return str(first_resource["name"])
-    
+
     # Try different common locations for resource ID
     locations = [
         ["resource", "uid"],
@@ -233,7 +235,7 @@ def _extract_account_id(raw_finding: dict[str, Any]) -> str | None:
         first_resource = resources[0]
         if "account_uid" in first_resource:
             return str(first_resource["account_uid"])
-    
+
     locations = [
         ["cloud", "account", "uid"],
         ["cloud", "account", "id"],
@@ -258,7 +260,7 @@ def _extract_region(raw_finding: dict[str, Any]) -> str | None:
         first_resource = resources[0]
         if "region" in first_resource:
             return str(first_resource["region"])
-    
+
     locations = [
         ["cloud", "region"],
         ["resource", "region"],

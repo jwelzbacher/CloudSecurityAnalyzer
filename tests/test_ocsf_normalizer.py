@@ -2,12 +2,12 @@
 
 import json
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
 
-from cs_kit.normalizer.ocsf_models import OCSFFinding, FindingSummary
+from cs_kit.normalizer.ocsf_models import FindingSummary, OCSFFinding
 from cs_kit.normalizer.parser import (
     _extract_account_id,
     _extract_check_id,
@@ -30,7 +30,7 @@ class TestOCSFModels:
     def test_ocsf_finding_creation(self) -> None:
         """Test creating an OCSF finding."""
         finding = OCSFFinding(
-            time=datetime.now(timezone.utc),
+            time=datetime.now(UTC),
             provider="aws",
             product="prowler",
             severity="high",
@@ -55,7 +55,7 @@ class TestOCSFModels:
     def test_ocsf_finding_minimal(self) -> None:
         """Test creating a minimal OCSF finding."""
         finding = OCSFFinding(
-            time=datetime.now(timezone.utc),
+            time=datetime.now(UTC),
             provider="gcp",
             product="prowler",
         )
